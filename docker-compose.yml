@@ -1,0 +1,131 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ebikestore_mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-ebikestore_db}
+      MYSQL_USER: ${MYSQL_USER:-ebikestore_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change_this_db_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change_this_root_password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD} || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - ebikestore_net
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: ebikestore_phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    ports:
+      - "${PHPMYADMIN_PORT:-8080}:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - ebikestore_net
+
+  minio:
+    image: minio/minio
+    container_name: ebikestore_minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change_this_minio_password}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - ebikestore_net
+
+  backend:
+    build:
+      context: ./ebikestorebackend
+      dockerfile: Dockerfile
+    container_name: ebikestore_backend
+    restart: always
+    ports:
+      - "${BACKEND_PORT:-5000}:5000"
+    environment:
+      PORT: 5000
+      NODE_ENV: ${NODE_ENV:-development}
+
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-ebikestore_db}
+      MYSQL_USER: ${MYSQL_USER:-ebikestore_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change_this_db_password}
+
+      JWT_SECRET: ${JWT_SECRET:-change_this_jwt_secret_key_minimum_32_chars}
+      JWT_EXPIRE: ${JWT_EXPIRE:-24h}
+
+      PII_ENCRYPTION_KEY: ${PII_ENCRYPTION_KEY}
+
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change_this_minio_password}
+      MINIO_BUCKET: ${MINIO_BUCKET:-ebikestore-products}
+      MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
+
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-onboarding@resend.dev}
+
+      ADMIN_NAME: ${ADMIN_NAME:-System Administrator}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@fideloe-bikes.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change_this_admin_password_123}
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    networks:
+      - ebikestore_net
+
+  frontend:
+    build:
+      context: ./ebikestorefrontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5000/api/v1}
+        VITE_INACTIVITY_TIMEOUT_MINUTES: ${VITE_INACTIVITY_TIMEOUT_MINUTES:-30}
+    container_name: ebikestore_frontend
+    restart: always
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - backend
+    networks:
+      - ebikestore_net
+
+volumes:
+  mysql_data:
+    driver: local
+
+  minio_data:
+    driver: local
+
+networks:
+  ebikestore_net:
+    driver: bridge
