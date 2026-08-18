@@ -18,4 +18,4 @@ data:
   MINIO_USE_SSL: "false"
   RESEND_FROM_EMAIL: "noreply@ruzzgd.dev"
   ADMIN_NAME: "System Administrator"
-  ADMIN_EMAIL: "admin@fideloe-bikes.com"
+  ADMIN_EMAIL: "admin@gmail.com"

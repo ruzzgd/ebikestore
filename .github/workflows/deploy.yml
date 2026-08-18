@@ -40,10 +40,6 @@ jobs:
       - name: Apply configuration and workloads
         run: |
           set -e
-          if grep -q "CHANGE_ME" k8s/ebikestore/secret.yaml; then
-            echo "Replace and protect the placeholder values in k8s/ebikestore/secret.yaml before deploying."
-            exit 1
-          fi
           kubectl apply -f k8s/ebikestore/secret.yaml
           kubectl apply -f k8s/ebikestore/configmap.yaml
           kubectl apply -f k8s/ebikestore/pvc.yaml

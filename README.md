@@ -2,7 +2,7 @@
 
 Fidelo E-Bike Store is a centralized inventory management and customer application system for a multi-location e-bike business. It covers the product catalog, location-based inventory, stock movements, inter-branch transfers, customer applications, notifications, reports, image uploads, and authentication auditing.
 
-> **Development only:** The credentials below come from the local development template. Change every password, key, and secret before exposing the system publicly. Never commit the generated `.env` file.
+> **Staging/demo credentials:** The documented credentials are intentionally shared by the local and staging configurations. Do not reuse them for a production deployment. Never commit the generated `.env` file; the Kubernetes Secret is protected with git-crypt.
 
 ## Local URLs and Credentials
 
@@ -26,8 +26,8 @@ These accounts are active, email-verified, and created automatically by the back
 
 - **Console:** [http://localhost:9001](http://localhost:9001)
 - **S3 API:** [http://localhost:9000](http://localhost:9000)
-- **Username:** `minioadmin`
-- **Password:** `admin1234`
+- **Username:** `ebikestore`
+- **Password:** `ebikestore1234`
 - **Application bucket:** `ebikestore-products`
 
 These values apply after copying the provided `.env.example` file as described below.
@@ -47,21 +47,21 @@ To inspect uploaded product and profile images:
 | Port | `3306` |
 | Database | `ebikestore_db` |
 | Username | `ebikestore_user` |
-| Password | `ebikestore_1234` |
-| Root password | `ebikestore_root_1234` |
+| Password | `ebikestore1234` |
+| Root password | `ebikestore1234` |
 
 ### phpMyAdmin
 
 - **Dashboard:** [http://localhost:8080](http://localhost:8080)
 - **Server:** `mysql` (selected automatically)
 - **Username:** `ebikestore_user`
-- **Password:** `ebikestore_1234`
+- **Password:** `ebikestore1234`
 
 To access the database in a browser:
 
 1. Start the stack with `docker compose up -d --build`.
 2. Open [http://localhost:8080](http://localhost:8080).
-3. Enter `ebikestore_user` as the username and `ebikestore_1234` as the password.
+3. Enter `ebikestore_user` as the username and `ebikestore1234` as the password.
 4. Select the `ebikestore_db` database from the left sidebar.
 
 These credentials come from `.env.example`. If you change `MYSQL_USER` or `MYSQL_PASSWORD` in your local `.env`, use those updated values to sign in. The phpMyAdmin host port can be changed with `PHPMYADMIN_PORT`.
@@ -72,7 +72,7 @@ Connect through the MySQL container without installing a database client on the 
 docker compose exec mysql mysql -u ebikestore_user -p ebikestore_db
 ```
 
-Enter `ebikestore_1234` when prompted. Useful commands include:
+Enter `ebikestore1234` when prompted. Useful commands include:
 
 ```sql
 SHOW TABLES;
@@ -269,6 +269,39 @@ docker compose exec backend npm run seed:test-users
 docker compose exec backend npm run seed:test-products
 ```
 
+## Kubernetes Staging Deployment
+
+The `k8s/ebikestore` directory contains the k3s staging resources for the React frontend, Express backend, MySQL 8, and MinIO. phpMyAdmin is intentionally available only in Docker Compose and is not deployed to Kubernetes.
+
+Staging endpoints:
+
+- **Application:** `https://ebikestore.ruzzgd.dev`
+- **Backend API:** `https://api-ebikestore.ruzzgd.dev/api/v1`
+- **MinIO API/CDN:** `https://cdn-ebikestore.ruzzgd.dev`
+
+The staging database uses `ebikestore_db`, `ebikestore_user`, and `ebikestore1234`. The initial administrator is `admin@gmail.com` with password `admin1234`. These are staging/demo credentials and must not be reused in production.
+
+The Kubernetes Secret manifest is encrypted in Git using the rule in `.gitattributes`. After cloning the repository on a trusted machine, unlock it with the repository key:
+
+```bash
+git-crypt unlock /secure/path/ebikestore-git-crypt-key
+```
+
+GitHub Actions expects the same binary key encoded as Base64 in a repository secret named `GIT_CRYPT_KEY`. A push to `main` builds the frontend and backend images in GHCR, then the self-hosted runner applies the manifests to the `ebikestore` namespace.
+
+Required cluster components and configuration:
+
+- A self-hosted GitHub Actions runner with `kubectl` and `git-crypt`
+- An nginx ingress controller
+- cert-manager with the `letsencrypt-prod` ClusterIssuer
+- DNS records for all three staging hostnames pointing to the ingress address
+
+Inspect the deployment with:
+
+```bash
+kubectl get pods,svc,ingress,pvc -n ebikestore
+```
+
 ## Automated Checks
 
 Run the backend tests:
@@ -293,11 +326,14 @@ docker compose exec frontend sh -c "cd /app && test -f dist/index.html"
 - **Object storage:** MinIO
 - **Email:** Resend with a development log fallback
 - **Local orchestration:** Docker Compose
+- **Staging orchestration:** Kubernetes/k3s with GitHub Actions
 
 ```text
 ebikestore/
 ├── ebikestorebackend/   # Express API, migrations, tests, and seed scripts
 ├── ebikestorefrontend/  # React and Vite web application
+├── k8s/ebikestore/      # Kubernetes staging manifests
+├── .github/workflows/   # GHCR build and k3s deployment automation
 ├── docs/                # System documentation PDF and diagrams
 ├── docker-compose.yml   # Local service definitions
 └── .env.example         # Development environment template

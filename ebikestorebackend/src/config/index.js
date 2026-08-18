@@ -16,13 +16,13 @@ const config = Object.freeze({
     port: parseInt(process.env.MYSQL_PORT || '3306', 10),
     database: process.env.MYSQL_DATABASE || 'ebikestore_db',
     user: process.env.MYSQL_USER || 'ebikestore_user',
-    password: process.env.MYSQL_PASSWORD || 'ebikestore_password_placeholder',
+    password: process.env.MYSQL_PASSWORD || 'ebikestore1234',
     connectionLimit: 10,
     waitForConnections: true,
     queueLimit: 0,
   }),
   jwt: Object.freeze({
-    secret: process.env.JWT_SECRET || 'change_this_jwt_secret_key_minimum_32_chars',
+    secret: process.env.JWT_SECRET || 'ebikestore_staging_jwt_secret_key_2026',
     expiresIn: process.env.JWT_EXPIRE || '24h',
     cookieName: 'ebikestore_token',
   }),
@@ -35,19 +35,19 @@ const config = Object.freeze({
   }),
   adminSeed: Object.freeze({
     name: process.env.ADMIN_NAME || 'System Administrator',
-    email: process.env.ADMIN_EMAIL || 'admin@fideloe-bikes.com',
-    password: process.env.ADMIN_PASSWORD || 'Admin123!Secure',
+    email: process.env.ADMIN_EMAIL || 'admin@gmail.com',
+    password: process.env.ADMIN_PASSWORD || 'admin1234',
   }),
   minio: Object.freeze({
     endPoint: process.env.MINIO_ENDPOINT || 'localhost',
     port: parseInt(process.env.MINIO_PORT || '9000', 10),
     useSSL: (process.env.MINIO_USE_SSL || 'false') === 'true',
-    accessKey: process.env.MINIO_ROOT_USER || 'minioadmin',
-    secretKey: process.env.MINIO_ROOT_PASSWORD || 'change_this_minio_password',
+    accessKey: process.env.MINIO_ROOT_USER || 'ebikestore',
+    secretKey: process.env.MINIO_ROOT_PASSWORD || 'ebikestore1234',
     bucket: process.env.MINIO_BUCKET || 'ebikestore-products',
   }),
   encryption: Object.freeze({
-    key: process.env.PII_ENCRYPTION_KEY || 'default_fallback_key_for_dev_only_12345'
+    key: process.env.PII_ENCRYPTION_KEY || 'ebikestore_staging_pii_key_2026'
   })
 });
 
