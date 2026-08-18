@@ -1,21 +1,40 @@
 #!/bin/sh
 set -e
 
-# NOTE: This automatic startup sequencing (migrations + seeding) is intended for local 
-# development via Docker Compose. In a true production environment, migrations and 
-# seeds should generally be handled explicitly by the CI/CD pipeline or deployment scripts.
+run_with_retry() {
+  description="$1"
+  shift
+  max_attempts="${STARTUP_RETRY_ATTEMPTS:-10}"
+  retry_delay="${STARTUP_RETRY_DELAY_SECONDS:-5}"
+  attempt=1
+
+  while ! "$@"; do
+    if [ "$attempt" -ge "$max_attempts" ]; then
+      echo "[STARTUP ERROR] ${description} failed after ${max_attempts} attempts."
+      return 1
+    fi
+
+    echo "[STARTUP WARNING] ${description} failed (attempt ${attempt}/${max_attempts}); retrying in ${retry_delay}s..."
+    attempt=$((attempt + 1))
+    sleep "$retry_delay"
+  done
+}
 
 echo "[STARTUP] Running database migrations..."
-npm run migrate
+run_with_retry "Database migration" npm run migrate
 
 echo "[STARTUP] Seeding administrator..."
-npm run seed:admin
+run_with_retry "Administrator seed" npm run seed:admin
 
-echo "[STARTUP] Seeding development users..."
-npm run seed:test-users
+if [ "${SEED_TEST_DATA:-false}" = "true" ]; then
+  echo "[STARTUP] Seeding development users..."
+  run_with_retry "Development user seed" npm run seed:test-users
 
-echo "[STARTUP] Seeding development products..."
-npm run seed:test-products
+  echo "[STARTUP] Seeding development products..."
+  run_with_retry "Development product seed" npm run seed:test-products
+else
+  echo "[STARTUP] Development seeds disabled (SEED_TEST_DATA is not true)."
+fi
 
 echo "[STARTUP] Starting API server..."
 if [ "$NODE_ENV" = "development" ]; then

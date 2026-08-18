@@ -67,6 +67,9 @@ services:
     environment:
       PORT: 5000
       NODE_ENV: ${NODE_ENV:-development}
+      SEED_TEST_DATA: ${SEED_TEST_DATA:-true}
+      STARTUP_RETRY_ATTEMPTS: ${STARTUP_RETRY_ATTEMPTS:-10}
+      STARTUP_RETRY_DELAY_SECONDS: ${STARTUP_RETRY_DELAY_SECONDS:-5}
 
       MYSQL_HOST: mysql
       MYSQL_PORT: 3306

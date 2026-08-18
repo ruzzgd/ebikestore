@@ -5,6 +5,9 @@ metadata:
   namespace: ebikestore
 data:
   NODE_ENV: "staging"
+  SEED_TEST_DATA: "false"
+  STARTUP_RETRY_ATTEMPTS: "10"
+  STARTUP_RETRY_DELAY_SECONDS: "5"
   PORT: "5000"
   MYSQL_HOST: "mysql"
   MYSQL_PORT: "3306"

@@ -22,24 +22,10 @@ jobs:
           echo "$GIT_CRYPT_KEY" | base64 -d > /tmp/ebikestore-git-crypt-key
           git-crypt unlock /tmp/ebikestore-git-crypt-key
 
-      - name: Apply namespace and image pull secret
-        env:
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GHCR_USER: ${{ github.repository_owner }}
-        run: |
-          set -e
-          kubectl apply -f k8s/ebikestore/namespace.yaml
-          kubectl create secret docker-registry ghcr-secret \
-            --namespace ebikestore \
-            --docker-server=ghcr.io \
-            --docker-username="$GHCR_USER" \
-            --docker-password="$GHCR_TOKEN" \
-            --dry-run=client \
-            -o yaml | kubectl apply -f -
-
       - name: Apply configuration and workloads
         run: |
           set -e
+          kubectl apply -f k8s/ebikestore/namespace.yaml
           kubectl apply -f k8s/ebikestore/secret.yaml
           kubectl apply -f k8s/ebikestore/configmap.yaml
           kubectl apply -f k8s/ebikestore/pvc.yaml
