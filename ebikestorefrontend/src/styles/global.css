@@ -1,10 +1,10 @@
 /* Design System & Global CSS Tokens */
 :root {
-  --color-bg-main: #f3f6f5;
+  --color-bg-main: #f3f8f6;
   --color-bg-card: #ffffff;
   --color-bg-card-hover: #f1f5f9;
-  --color-border: #dbe4e1;
-  --color-border-accent: #b9cbc6;
+  --color-border: #d8e7e1;
+  --color-border-accent: #a9cfc1;
 
   --color-text-primary: #0f172a;
   --color-text-secondary: #334155;
@@ -13,6 +13,9 @@
   --color-brand-primary: #0f172a;
   --color-brand-light: #334155;
   --color-brand-teal: #0d9488;
+  --color-brand-green: #86efac;
+  --color-brand-green-soft: #ecfdf3;
+  --color-brand-green-muted: #d9f7e5;
 
   --color-status-success: #10b981;
   --color-status-warning: #f59e0b;
@@ -80,11 +83,28 @@ img { max-width: 100%; }
 
 input, select, textarea {
   min-height: 44px;
+  padding: .7rem .85rem;
+  font-size: .875rem;
   color: var(--color-text-primary);
   background: #f8faf9;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+select {
+  appearance: none;
+  padding-right: 2.65rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #0f766e 50%),
+    linear-gradient(135deg, #0f766e 50%, transparent 50%),
+    linear-gradient(to right, #d8e7e1, #d8e7e1);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 13px) 50%,
+    calc(100% - 2.35rem) 50%;
+  background-size: 5px 5px, 5px 5px, 1px 1.35rem;
+  background-repeat: no-repeat;
 }
 
 textarea { min-height: 110px; resize: vertical; }

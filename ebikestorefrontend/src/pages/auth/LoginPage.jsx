@@ -120,7 +120,7 @@ export function LoginPage() {
         </div>
       </div>
       <div className="auth-form-panel">
-        <div style={{ width: '100%', maxWidth: '440px', background: '#ffffff', borderRadius: '16px', padding: '3rem 2.5rem', boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)' }}>
+        <div className="auth-card auth-card-modern" style={{ width: '100%', maxWidth: '440px', background: '#ffffff', borderRadius: '16px', padding: '3rem 2.5rem', boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)' }}>
           
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#0f172a', marginBottom: '0.25rem' }}>

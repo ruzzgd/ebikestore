@@ -36,7 +36,7 @@ export function HomePage() {
   return (
     <div className="home-page" style={{ width: '100%', background: '#ffffff' }}>
       {/* 1. Full-cover Hero */}
-      <section style={{
+      <section className="home-hero" style={{
         position: 'relative',
         height: '100svh',
         minHeight: '600px',
@@ -105,7 +105,7 @@ export function HomePage() {
       </section>
 
       {/* 2. Compact Value Strip */}
-      <section style={{ borderBottom: '1px solid var(--color-border)', background: '#ffffff' }}>
+      <section className="home-value-strip" style={{ borderBottom: '1px solid var(--color-border)', background: '#ffffff' }}>
         <div className="container" style={{ padding: '2rem 1rem' }}>
           <div className="value-strip-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
             <div>
@@ -125,9 +125,9 @@ export function HomePage() {
       </section>
 
       {/* 3. Featured Products */}
-      <section style={{ padding: '6rem 0', background: '#f8fafc' }}>
+      <section className="home-featured" style={{ padding: '6rem 0', background: '#f8fafc' }}>
         <div className="container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
+          <div className="home-section-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
             <div>
               <h2 style={{ fontSize: '2rem', fontWeight: 600, color: '#0f172a', letterSpacing: '-0.02em', marginBottom: '0.5rem' }}>Featured Models</h2>
               <p style={{ color: 'var(--color-text-muted)' }}>Explore our latest electric bicycles</p>
@@ -142,7 +142,7 @@ export function HomePage() {
           ) : (
              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
               {products.map(product => (
-                <Link to={`/products/${product.id}`} key={product.id} className="card" style={{ padding: 0, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', textDecoration: 'none' }}>
+                <Link to={`/products/${product.id}`} key={product.id} className="card home-product-card" style={{ padding: 0, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', textDecoration: 'none' }}>
                   <div style={{ height: '220px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid var(--color-border)' }}>
                     {product.image_key ? (
                       <img src={getImageUrl(product.image_key)} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -172,7 +172,7 @@ export function HomePage() {
       </section>
 
       {/* 4. Editorial E-Bike Section */}
-      <section style={{ padding: '6rem 0', background: '#ffffff', borderTop: '1px solid var(--color-border)' }}>
+      <section className="home-editorial" style={{ padding: '6rem 0', background: '#ffffff', borderTop: '1px solid var(--color-border)' }}>
         <div className="container">
           <div className="editorial-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
             <div>
@@ -208,7 +208,7 @@ export function HomePage() {
       </section>
 
       {/* 5. How It Works */}
-      <section style={{ padding: '6rem 0', background: '#0f172a', color: '#ffffff' }}>
+      <section className="home-process" style={{ padding: '6rem 0', background: '#0f172a', color: '#ffffff' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
             <h2 style={{ fontSize: '2.5rem', fontWeight: 600, marginBottom: '1rem', letterSpacing: '-0.02em', color: '#ffffff' }}>
@@ -240,7 +240,7 @@ export function HomePage() {
       </section>
 
       {/* 6. Locations */}
-      <section style={{ padding: '6rem 0', background: '#f8fafc' }}>
+      <section className="home-locations" style={{ padding: '6rem 0', background: '#f8fafc' }}>
         <div className="container">
           <h2 style={{ fontSize: '2.5rem', fontWeight: 600, color: '#0f172a', marginBottom: '3rem', letterSpacing: '-0.02em', textAlign: 'center' }}>
             Our Network
@@ -251,7 +251,7 @@ export function HomePage() {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
               {locations.map((loc, i) => (
-                <div key={i} className="card" style={{ display: 'flex', flexDirection: 'column', padding: '2rem' }}>
+                <div key={i} className="card home-location-card" style={{ display: 'flex', flexDirection: 'column', padding: '2rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
                     <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(15, 23, 42, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <MapPin size={24} color="var(--color-brand-primary)" />
@@ -292,7 +292,7 @@ export function HomePage() {
       </section>
 
       {/* 7. Application CTA */}
-      <section style={{ padding: '6rem 0', background: '#ffffff', textAlign: 'center', borderTop: '1px solid var(--color-border)' }}>
+      <section className="home-cta" style={{ padding: '6rem 0', background: '#ffffff', textAlign: 'center', borderTop: '1px solid var(--color-border)' }}>
         <div className="container" style={{ maxWidth: '600px' }}>
           <h2 style={{ fontSize: '2.5rem', fontWeight: 600, color: '#0f172a', marginBottom: '1.5rem', letterSpacing: '-0.02em' }}>
             Ready to ride?

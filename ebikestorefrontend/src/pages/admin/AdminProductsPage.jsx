@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Bike, Upload, Plus, Edit2, CheckCircle, XCircle, ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
+import { Bike, Eye, Edit2, CheckCircle, XCircle, ArrowLeft, RefreshCw, ImagePlus } from 'lucide-react';
 import productService from '../../services/productService.js';
 import categoryService from '../../services/categoryService.js';
 import uploadService from '../../services/uploadService.js';
@@ -144,13 +144,13 @@ export function AdminProductsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <Link to="/admin" className="btn-refresh">
-          <ArrowLeft size={16} />
-          <span>Back to Admin Dashboard</span>
-        </Link>
-        <h2 style={{ fontSize: '1.75rem' }}>Product Master Catalog Management</h2>
-      </div>
+      <header className="management-heading product-management-heading">
+        <div><span className="section-eyebrow">CATALOG ADMINISTRATION</span><h1>Product Management</h1><p>Create, update, review, and control product availability across the Fidelo catalog.</p></div>
+        <div className="management-heading-actions">
+          <Link to="/admin" className="btn-refresh"><ArrowLeft size={16} /><span>Back</span></Link>
+          <button type="button" className="btn-refresh" onClick={loadData} disabled={loading}><RefreshCw size={16} className={loading ? 'spin-icon' : undefined} /><span>{loading ? 'Refreshing…' : 'Refresh'}</span></button>
+        </div>
+      </header>
 
       <div className="grid-cols-2">
         {/* Form */}
@@ -240,31 +240,15 @@ export function AdminProductsPage() {
               />
             </div>
 
-            {/* MinIO Image Upload Box */}
-            <div style={{ marginBottom: '1.25rem', padding: '0.85rem', background: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--color-border)' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-brand-light)', fontWeight: '600', marginBottom: '0.5rem' }}>
-                Product Image (MinIO Storage)
+            <div className="product-image-field">
+              <span className="product-image-field-label">Product Image</span>
+              <input className="product-image-input" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageFileChange} id="input-product-image-file" />
+              <label className={`product-image-dropzone ${imagePreviewUrl ? 'has-image' : ''}`} htmlFor="input-product-image-file">
+                {imagePreviewUrl ? <img src={imagePreviewUrl} alt="Selected product preview" /> : <span className="product-image-placeholder"><ImagePlus size={28} /><strong>Choose a product image</strong><small>JPEG, PNG, or WebP</small></span>}
+                <span className="product-image-overlay"><ImagePlus size={18} />{imagePreviewUrl ? 'Change image' : 'Browse image'}</span>
+                {uploadingImage && <span className="product-image-loading"><RefreshCw size={22} className="spin-icon" /> Uploading…</span>}
               </label>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handleImageFileChange}
-                  style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}
-                  id="input-product-image-file"
-                />
-                {uploadingImage && <RefreshCw size={16} className="spin-icon" />}
-              </div>
-
-              {imagePreviewUrl && (
-                <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <img src={imagePreviewUrl} alt="Preview" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }} />
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>
-                    Key: {formData.imageKey}
-                  </span>
-                </div>
-              )}
+              {imagePreviewUrl && <small className="product-image-help">Click the preview to choose a different image.</small>}
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -311,6 +295,9 @@ export function AdminProductsPage() {
                   </div>
 
                   <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <Link to={`/admin/products/${p.id}`} className="btn-refresh" title="View Product" aria-label={`View ${p.name}`}>
+                      <Eye size={14} />
+                    </Link>
                     <button onClick={() => handleEdit(p)} className="btn-refresh" title="Edit Product">
                       <Edit2 size={14} />
                     </button>

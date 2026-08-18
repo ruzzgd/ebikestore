@@ -1,0 +1,102 @@
+name: Deploy E-Bike Store
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Unlock git-crypt
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          set -e
+          echo "$GIT_CRYPT_KEY" | base64 -d > /tmp/ebikestore-git-crypt-key
+          git-crypt unlock /tmp/ebikestore-git-crypt-key
+
+      - name: Apply namespace and image pull secret
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.repository_owner }}
+        run: |
+          set -e
+          kubectl apply -f k8s/ebikestore/namespace.yaml
+          kubectl create secret docker-registry ghcr-secret \
+            --namespace ebikestore \
+            --docker-server=ghcr.io \
+            --docker-username="$GHCR_USER" \
+            --docker-password="$GHCR_TOKEN" \
+            --dry-run=client \
+            -o yaml | kubectl apply -f -
+
+      - name: Apply configuration and workloads
+        run: |
+          set -e
+          if grep -q "CHANGE_ME" k8s/ebikestore/secret.yaml; then
+            echo "Replace and protect the placeholder values in k8s/ebikestore/secret.yaml before deploying."
+            exit 1
+          fi
+          kubectl apply -f k8s/ebikestore/secret.yaml
+          kubectl apply -f k8s/ebikestore/configmap.yaml
+          kubectl apply -f k8s/ebikestore/pvc.yaml
+          kubectl apply -f k8s/ebikestore/svc.yaml
+          kubectl apply -f k8s/ebikestore/statefulset.yaml
+          kubectl rollout status statefulset/mysql \
+            -n ebikestore \
+            --timeout=240s
+          kubectl wait \
+            --for=condition=ready \
+            pod \
+            -l app=mysql \
+            -n ebikestore \
+            --timeout=240s
+          kubectl apply -f k8s/ebikestore/deployment.yaml
+          kubectl apply -f k8s/ebikestore/ingress.yaml
+
+      - name: Restart application deployments
+        run: |
+          set -e
+          kubectl rollout restart deployment/backend -n ebikestore
+          kubectl rollout restart deployment/frontend -n ebikestore
+          kubectl rollout restart deployment/minio -n ebikestore
+
+      - name: Wait for application rollouts
+        run: |
+          set -e
+          for deployment in minio backend frontend; do
+            if ! kubectl rollout status "deployment/$deployment" \
+              -n ebikestore \
+              --timeout=240s; then
+              kubectl get pods -n ebikestore -l "app=$deployment"
+              kubectl describe pods -n ebikestore -l "app=$deployment"
+              kubectl logs -n ebikestore "deployment/$deployment" --tail=100 || true
+              exit 1
+            fi
+          done
+
+      - name: Show deployed resources
+        if: always()
+        run: |
+          kubectl get pods -n ebikestore
+          kubectl get services -n ebikestore
+          kubectl get ingress -n ebikestore
+          kubectl get pvc -n ebikestore
+
+      - name: Clean up unused images
+        if: always()
+        run: |
+          sudo crictl rmi --prune \
+            || docker image prune -f \
+            || true
+
+      - name: Remove git-crypt key
+        if: always()
+        run: rm -f /tmp/ebikestore-git-crypt-key

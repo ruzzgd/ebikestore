@@ -201,8 +201,8 @@ export function AdminDashboard() {
 
       <div className="grid-cols-2">
         {/* Create Staff Account Form */}
-        <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+        <div className="card dashboard-form-card">
+          <div className="dashboard-form-card-heading" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
             <UserPlus size={22} color="#3b82f6" />
             <h3>Provision Staff Account</h3>
           </div>

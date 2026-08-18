@@ -80,6 +80,14 @@ export function App() {
           }
         />
         <Route
+          path="/admin/products/:id"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <ProductDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin/locations"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
@@ -140,6 +148,14 @@ export function App() {
         <Route
           path="/account/applications"
           element={<ProtectedRoute allowedRoles={['customer']}><MyApplicationsPage /></ProtectedRoute>}
+        />
+        <Route
+          path="/account/products"
+          element={<ProtectedRoute allowedRoles={['customer']}><ProductsPage /></ProtectedRoute>}
+        />
+        <Route
+          path="/account/products/:id"
+          element={<ProtectedRoute allowedRoles={['customer']}><ProductDetailPage /></ProtectedRoute>}
         />
         <Route
           path="/manage/applications"

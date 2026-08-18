@@ -12,6 +12,9 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Local git-crypt key exports
+ebikestore-git-crypt-key
+
 # Build output
 dist/
 build/

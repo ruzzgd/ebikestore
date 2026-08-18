@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ebikestore
+  labels:
+    app.kubernetes.io/name: ebikestore
+    app.kubernetes.io/managed-by: github-actions

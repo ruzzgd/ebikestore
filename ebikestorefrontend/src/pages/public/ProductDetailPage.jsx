@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Bike, ArrowLeft, Tag, RefreshCw, ShieldCheck, AlertCircle } from 'lucide-react';
+import { useParams, Link, useLocation } from 'react-router-dom';
+import { Bike, ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
 import productService from '../../services/productService.js';
 import { useAuth } from '../../hooks/useAuth.js';
 
 export function ProductDetailPage() {
   const { user } = useAuth();
+  const location = useLocation();
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const isAccountCatalog = location.pathname.startsWith('/account/products');
+  const backPath = user?.role === 'admin' ? '/admin/products' : isAccountCatalog ? '/account/products' : '/products';
+  const backLabel = user?.role === 'admin' ? 'Back to Product Management' : 'Back to Products';
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -53,7 +57,7 @@ export function ProductDetailPage() {
         <AlertCircle size={48} color="#ef4444" style={{ marginBottom: '1rem' }} />
         <h2>Product Not Available</h2>
         <p style={{ color: 'var(--color-text-secondary)', margin: '0.5rem 0 1.5rem 0' }}>{error}</p>
-        <Link to="/products" className="btn secondary" style={{ display: 'inline-flex' }}>
+        <Link to={backPath} className="btn secondary" style={{ display: 'inline-flex' }}>
           <ArrowLeft size={16} />
           <span>Back to Catalog</span>
         </Link>
@@ -65,15 +69,15 @@ export function ProductDetailPage() {
   const availabilityLabels = { available: 'Available', limited_stock: 'Limited Stock', out_of_stock: 'Out of Stock' };
 
   return (
-    <div className="container" style={{ paddingBottom: '4rem' }}>
-      <Link to="/products" className="btn secondary" style={{ marginBottom: '1.5rem', display: 'inline-flex' }}>
+    <div className="container public-product-detail" style={{ paddingBottom: '4rem' }}>
+      <Link to={backPath} className="btn secondary" style={{ marginBottom: '1.5rem', display: 'inline-flex' }}>
         <ArrowLeft size={16} />
-        <span>Back to Products</span>
+        <span>{backLabel}</span>
       </Link>
 
       <div className="grid-cols-2" style={{ gap: '2.5rem' }}>
         {/* Left: Product Image */}
-        <div className="card" style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '320px', background: 'var(--color-bg-main)' }}>
+        <div className="card public-product-detail-image" style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '320px', background: 'var(--color-bg-main)' }}>
           {imageUrl ? (
             <img src={imageUrl} alt={product.name} style={{ maxWidth: '100%', maxHeight: '350px', objectFit: 'contain', borderRadius: 'var(--radius-md)' }} />
           ) : (
@@ -85,7 +89,7 @@ export function ProductDetailPage() {
         </div>
 
         {/* Right: Product Details */}
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div className="public-product-detail-copy" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
             <span className="tech-tag" style={{ background: 'var(--color-bg-card-hover)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' }}>{product.category_name}</span>
             <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>SKU: {product.sku}</span>
@@ -104,7 +108,7 @@ export function ProductDetailPage() {
             </p>
           </div>
 
-          <div style={{ padding: '0.85rem 1rem', background: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
+          <div className="public-product-availability" style={{ padding: '0.85rem 1rem', background: 'var(--color-bg-card)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
             <strong style={{ color: 'var(--color-text-primary)' }}>Availability by location</strong>
             <div className="public-location-list">
               {(product.availability_by_location || []).map((location) => (

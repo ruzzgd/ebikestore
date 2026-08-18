@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: ebikestore
+data:
+  NODE_ENV: "staging"
+  PORT: "5000"
+  MYSQL_HOST: "mysql"
+  MYSQL_PORT: "3306"
+  MYSQL_DATABASE: "ebikestore_db"
+  MYSQL_USER: "ebikestore_user"
+  JWT_EXPIRE: "24h"
+  CORS_ORIGIN: "https://ebikestore.ruzzgd.dev"
+  MINIO_ENDPOINT: "minio"
+  MINIO_PORT: "9000"
+  MINIO_BUCKET: "ebikestore-products"
+  MINIO_USE_SSL: "false"
+  RESEND_FROM_EMAIL: "noreply@ruzzgd.dev"
+  ADMIN_NAME: "System Administrator"
+  ADMIN_EMAIL: "admin@fideloe-bikes.com"

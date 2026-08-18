@@ -9,6 +9,7 @@ const ROLE_HOME = { admin: '/admin', branch_staff: '/staff', warehouse_staff: '/
 const NAV_ITEMS = {
   admin: [
     { to: '/admin', label: 'Overview', icon: LayoutDashboard, end: true },
+    { to: '/admin/products', label: 'Products', icon: Bike },
     { to: '/inventory', label: 'Inventory', icon: Boxes },
     { to: '/transfers', label: 'Transfers', icon: Package },
     { to: '/manage/applications', label: 'Applications', icon: ClipboardCheck },
@@ -30,7 +31,7 @@ const NAV_ITEMS = {
   customer: [
     { to: '/account', label: 'My Account', icon: LayoutDashboard, end: true },
     { to: '/account/applications', label: 'Applications', icon: ClipboardCheck },
-    { to: '/products', label: 'Browse E-Bikes', icon: Bike },
+    { to: '/account/products', label: 'Browse E-Bikes', icon: Bike },
   ],
 };
 

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Search, Tag, Bike, Package, ArrowRight, RefreshCw } from 'lucide-react';
 import productService from '../../services/productService.js';
 import categoryService from '../../services/categoryService.js';
 
 export function ProductsPage() {
+  const location = useLocation();
+  const isAccountCatalog = location.pathname.startsWith('/account/products');
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -51,9 +53,9 @@ export function ProductsPage() {
   const availabilityLabels = { available: 'Available', limited_stock: 'Limited Stock', out_of_stock: 'Out of Stock' };
 
   return (
-    <div className="container" style={{ paddingBottom: '4rem' }}>
+    <div className="container product-catalog-page" style={{ paddingBottom: '4rem' }}>
       {/* Header Banner */}
-      <div style={{ textAlign: 'center', marginBottom: '3.5rem', background: 'linear-gradient(to bottom, #f8fafc, #ffffff)', padding: '3rem 1rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
+      <div className="catalog-hero" style={{ textAlign: 'center', marginBottom: '3.5rem', background: 'linear-gradient(to bottom, #f8fafc, #ffffff)', padding: '3rem 1rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
         <h1 style={{ fontSize: '2.75rem', fontWeight: '700', marginBottom: '1rem', letterSpacing: '-0.02em', color: '#0f172a' }}>Product Catalog</h1>
         <p style={{ color: 'var(--color-text-secondary)', maxWidth: '600px', margin: '0 auto', fontSize: '1.125rem' }}>
           Explore Fidelo E-Bikes, replacement spare parts, and riding accessories.
@@ -61,7 +63,7 @@ export function ProductsPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '3rem', padding: '1rem', background: '#ffffff', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+      <div className="catalog-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', marginBottom: '3rem', padding: '1rem', background: '#ffffff', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
         {/* Category Pills */}
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button
@@ -128,12 +130,12 @@ export function ProductsPage() {
           {products.map((prod) => {
             const imageUrl = getImageUrl(prod.image_key);
             return (
-              <div key={prod.id} className="card" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '1.25rem', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+              <div key={prod.id} className="card catalog-product-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '1.25rem', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
                 onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.06)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'var(--shadow-card)'; }}
               >
                 {/* Image Box */}
-                <div style={{ background: '#f8fafc', borderRadius: 'var(--radius-md)', height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: '1.5rem', border: '1px solid var(--color-border)' }}>
+                <div className="catalog-product-image" style={{ background: '#f8fafc', borderRadius: 'var(--radius-md)', height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: '1.5rem', border: '1px solid var(--color-border)' }}>
                   {imageUrl ? (
                     <img src={imageUrl} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
@@ -162,11 +164,11 @@ export function ProductsPage() {
                 </div>
 
                 {/* Price & Action */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', marginTop: 'auto' }}>
+                <div className="catalog-product-action" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', marginTop: 'auto' }}>
                   <span style={{ fontSize: '1.35rem', fontWeight: '700', color: '#0f172a' }}>
                     {formatCurrency(prod.unit_price)}
                   </span>
-                  <Link to={`/products/${prod.id}`} className="btn primary" style={{ fontSize: '0.85rem' }} id={`link-product-detail-${prod.id}`}>
+                <Link to={`${isAccountCatalog ? '/account/products' : '/products'}/${prod.id}`} className="btn primary" style={{ fontSize: '0.85rem' }} id={`link-product-detail-${prod.id}`}>
                     <span>View Details</span>
                     <ArrowRight size={14} />
                   </Link>
