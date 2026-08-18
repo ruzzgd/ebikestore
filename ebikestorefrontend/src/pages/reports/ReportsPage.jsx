@@ -3,7 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import reportService from '../../services/reportService';
 import locationService from '../../services/locationService';
 import { downloadCSV } from '../../utils/csvExport';
-import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Bike, Boxes, CheckCircle2, ClipboardCheck, Download, PackageCheck, RefreshCw, TriangleAlert } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Bike, Boxes, CheckCircle2, ClipboardCheck, Download, PackageCheck, RefreshCw, TriangleAlert, X } from 'lucide-react';
 import './ReportsPage.css';
 
 const TAB_OVERVIEW = 'overview';
@@ -35,6 +35,7 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
+  const [showEmptyExportModal, setShowEmptyExportModal] = useState(false);
 
   useEffect(() => {
     if (isAdmin) {
@@ -94,6 +95,10 @@ export default function ReportsPage() {
 
   const handleExport = () => {
     if (!data || !Array.isArray(data)) return;
+    if (data.length === 0) {
+      setShowEmptyExportModal(true);
+      return;
+    }
     downloadCSV(data, `report-${activeTab}-${new Date().toISOString().split('T')[0]}.csv`);
   };
 
@@ -248,6 +253,33 @@ export default function ReportsPage() {
           </>
         )}
       </div>
+
+      {showEmptyExportModal && (
+        <div
+          className="report-modal-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowEmptyExportModal(false);
+          }}
+        >
+          <div className="report-modal" role="dialog" aria-modal="true" aria-labelledby="empty-export-title">
+            <button
+              type="button"
+              className="report-modal-close"
+              aria-label="Close"
+              onClick={() => setShowEmptyExportModal(false)}
+            >
+              <X size={20} />
+            </button>
+            <span className="report-modal-icon"><TriangleAlert size={24} /></span>
+            <h2 id="empty-export-title">No records to export</h2>
+            <p>There are no records for the selected date range and location. Adjust the report filters and try again.</p>
+            <button type="button" className="btn btn-secondary" onClick={() => setShowEmptyExportModal(false)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -26,8 +26,6 @@ export const downloadCSV = (data, filename) => {
   const csvString = csvRows.join('\n');
   const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
   
-  const link = document.createElement('url');
-  
   // Use a temporary anchor to trigger download
   if (navigator.msSaveBlob) { 
     // IE 10+
