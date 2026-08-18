@@ -62,6 +62,11 @@ export function AdminCategoriesPage() {
   };
 
   const handleToggleActive = async (id, currentStatus) => {
+    const category = categories.find((item) => item.id === id);
+    if (currentStatus && Number(category?.active_product_count || 0) > 0) {
+      setError(`Deactivate the ${category.active_product_count} active product${Number(category.active_product_count) === 1 ? '' : 's'} in '${category.name}' before deactivating this category.`);
+      return;
+    }
     try {
       await categoryService.toggleCategoryActive(id, !currentStatus);
       loadCategories();
@@ -155,7 +160,7 @@ export function AdminCategoriesPage() {
                       <span>{cat.name}</span>
                       {!cat.is_active && <span className="tech-tag" style={{ background: 'rgba(239,68,68,0.2)', color: '#fca5a5' }}>Inactive</span>}
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{cat.description || 'No description'}</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{cat.description || 'No description'} · {Number(cat.active_product_count || 0)} active product{Number(cat.active_product_count || 0) === 1 ? '' : 's'}</div>
                   </div>
 
                   <div style={{ display: 'flex', gap: '0.4rem' }}>

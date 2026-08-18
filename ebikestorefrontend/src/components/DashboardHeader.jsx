@@ -31,7 +31,7 @@ const NAV_ITEMS = {
   customer: [
     { to: '/account', label: 'My Account', icon: LayoutDashboard, end: true },
     { to: '/account/applications', label: 'Applications', icon: ClipboardCheck },
-    { to: '/account/products', label: 'Browse E-Bikes', icon: Bike },
+    { to: '/account/products', label: 'Browse Products', icon: Bike },
   ],
 };
 

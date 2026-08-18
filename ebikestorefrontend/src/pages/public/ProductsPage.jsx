@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { Search, Tag, Bike, Package, ArrowRight, RefreshCw } from 'lucide-react';
 import productService from '../../services/productService.js';
 import categoryService from '../../services/categoryService.js';
 
 export function ProductsPage() {
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isAccountCatalog = location.pathname.startsWith('/account/products');
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const initialCategory = Number(searchParams.get('category')) || null;
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -34,6 +36,14 @@ export function ProductsPage() {
   useEffect(() => {
     loadData();
   }, [selectedCategory]);
+
+  const selectCategory = (categoryId) => {
+    setSelectedCategory(categoryId);
+    const nextParams = new URLSearchParams(searchParams);
+    if (categoryId) nextParams.set('category', String(categoryId));
+    else nextParams.delete('category');
+    setSearchParams(nextParams, { replace: true });
+  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -67,7 +77,7 @@ export function ProductsPage() {
         {/* Category Pills */}
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button
-            onClick={() => setSelectedCategory(null)}
+            onClick={() => selectCategory(null)}
             className={`btn ${selectedCategory === null ? 'primary' : 'secondary'}`}
             id="btn-filter-category-all"
           >
@@ -77,11 +87,11 @@ export function ProductsPage() {
           {categories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
+              onClick={() => selectCategory(cat.id)}
               className={`btn ${selectedCategory === cat.id ? 'primary' : 'secondary'}`}
               id={`btn-filter-category-${cat.id}`}
             >
-              <span>{cat.name}</span>
+              <span>{cat.name} ({Number(cat.active_product_count || 0)})</span>
             </button>
           ))}
         </div>
@@ -122,7 +132,9 @@ export function ProductsPage() {
           <Package size={48} color="#64748b" style={{ marginBottom: '1rem' }} />
           <h3>No products found</h3>
           <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
-            Try selecting a different category or refining your search keywords.
+            {selectedCategory
+              ? `No ${categories.find((category) => category.id === selectedCategory)?.name || 'products'} are currently available.`
+              : 'Try refining your search keywords.'}
           </p>
         </div>
       ) : (

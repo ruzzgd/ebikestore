@@ -17,6 +17,7 @@ const refreshImageSkus = new Set(
 
 const testProducts = [
   {
+    category: 'E-Bikes',
     name: 'Fidelo City E1',
     sku: 'EBIKE-CITY-E1',
     price: 34999.00,
@@ -24,6 +25,7 @@ const testProducts = [
     imageFile: 'city-e1.jpg',
   },
   {
+    category: 'E-Bikes',
     name: 'Fidelo Urban E2',
     sku: 'EBIKE-URBAN-E2',
     price: 42999.00,
@@ -31,6 +33,7 @@ const testProducts = [
     imageFile: 'urban-e2.jpg',
   },
   {
+    category: 'E-Bikes',
     name: 'Fidelo Trail E3',
     sku: 'EBIKE-TRAIL-E3',
     price: 54999.00,
@@ -38,6 +41,7 @@ const testProducts = [
     imageFile: 'trail-e3.jpg',
   },
   {
+    category: 'E-Bikes',
     name: 'Fidelo Compact E4',
     sku: 'EBIKE-COMPACT-E4',
     price: 29999.00,
@@ -45,6 +49,7 @@ const testProducts = [
     imageFile: 'compact-e4.jpg',
   },
   {
+    category: 'E-Bikes',
     name: 'Fidelo Commuter E5',
     sku: 'EBIKE-COMMUTER-E5',
     price: 38999.00,
@@ -52,11 +57,44 @@ const testProducts = [
     imageFile: 'commuter-e5.jpg',
   },
   {
+    category: 'E-Bikes',
     name: 'Fidelo Cargo E6',
     sku: 'EBIKE-CARGO-E6',
     price: 59999.00,
     description: 'A utility-focused electric bicycle designed to provide additional carrying capability for everyday use.',
     imageFile: 'cargo-e6.jpg',
+  },
+  {
+    category: 'Accessories',
+    name: 'Fidelo Commuter Helmet',
+    sku: 'ACC-HELMET-C1',
+    price: 1899.00,
+    description: 'A lightweight commuter helmet with adjustable fit and ventilation for everyday rides.',
+    imageFile: 'city-e1.jpg',
+  },
+  {
+    category: 'Accessories',
+    name: 'Fidelo Security U-Lock',
+    sku: 'ACC-LOCK-U1',
+    price: 1299.00,
+    description: 'A hardened steel bicycle lock designed for dependable short- and long-term parking security.',
+    imageFile: 'compact-e4.jpg',
+  },
+  {
+    category: 'Spare Parts',
+    name: 'Fidelo 48V Replacement Battery',
+    sku: 'PART-BATT-48V',
+    price: 15999.00,
+    description: 'A compatible 48-volt replacement battery pack for supported Fidelo electric bicycle models.',
+    imageFile: 'urban-e2.jpg',
+  },
+  {
+    category: 'Spare Parts',
+    name: 'Fidelo Hydraulic Brake Pad Set',
+    sku: 'PART-BRAKE-H1',
+    price: 749.00,
+    description: 'A replacement brake pad set for supported Fidelo hydraulic disc brake assemblies.',
+    imageFile: 'trail-e3.jpg',
   },
 ];
 
@@ -64,17 +102,19 @@ export const seedTestProducts = async () => {
   console.log('[SEED] Starting test products seed process...');
 
   try {
-    // 1. Resolve 'E-Bikes' category
+    // 1. Resolve every category used by the product fixtures.
+    const requiredCategories = [...new Set(testProducts.map((product) => product.category))];
     const [catRows] = await query(
-      `SELECT id FROM categories WHERE name = 'E-Bikes' LIMIT 1`
+      `SELECT id, name FROM categories WHERE name IN (?, ?, ?)`,
+      requiredCategories
     );
 
-    if (catRows.length === 0) {
-      throw new Error("Required category 'E-Bikes' not found in database.");
+    const categoryIds = new Map(catRows.map((category) => [category.name, category.id]));
+    const missingCategories = requiredCategories.filter((name) => !categoryIds.has(name));
+    if (missingCategories.length > 0) {
+      throw new Error(`Required categories not found: ${missingCategories.join(', ')}`);
     }
-
-    const categoryId = catRows[0].id;
-    console.log(`[SEED] Resolved 'E-Bikes' category to ID: ${categoryId}`);
+    console.log(`[SEED] Resolved product categories: ${requiredCategories.join(', ')}`);
 
     // 2. Process each product
     for (const prod of testProducts) {
@@ -120,7 +160,7 @@ export const seedTestProducts = async () => {
       const [insertResult] = await query(
         `INSERT INTO products (category_id, sku, name, description, unit_price, image_key, is_active) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [categoryId, prod.sku, prod.name, prod.description, prod.price, imageKey, true]
+        [categoryIds.get(prod.category), prod.sku, prod.name, prod.description, prod.price, imageKey, true]
       );
 
       console.log(`[SEED] Created ${prod.sku} (ID: ${insertResult.insertId})`);

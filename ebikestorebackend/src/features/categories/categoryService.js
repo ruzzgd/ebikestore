@@ -1,6 +1,14 @@
 import categoryRepository from './categoryRepository.js';
 import { BadRequestError, ConflictError, NotFoundError } from '../../utils/errors.js';
 
+export const assertCategoryCanBeDeactivated = (category, activeProductCount) => {
+  if (activeProductCount > 0) {
+    throw new ConflictError(
+      `Cannot deactivate '${category.name}' while it contains ${activeProductCount} active product${activeProductCount === 1 ? '' : 's'}`
+    );
+  }
+};
+
 export const getCategories = async ({ activeOnly = false } = {}) => {
   return await categoryRepository.listCategories({ activeOnly });
 };
@@ -42,6 +50,11 @@ export const updateCategory = async (id, { name, description, isActive }) => {
     }
   }
 
+  if (isActive === false && category.is_active) {
+    const activeProductCount = await categoryRepository.countActiveProductsByCategory(id);
+    assertCategoryCanBeDeactivated(category, activeProductCount);
+  }
+
   await categoryRepository.updateCategory(id, {
     name: cleanName,
     description: description !== undefined ? description.trim() : category.description,
@@ -55,6 +68,10 @@ export const setCategoryActiveStatus = async (id, isActive) => {
   const category = await categoryRepository.findCategoryById(id);
   if (!category) {
     throw new NotFoundError('Category not found');
+  }
+  if (!isActive) {
+    const activeProductCount = await categoryRepository.countActiveProductsByCategory(id);
+    assertCategoryCanBeDeactivated(category, activeProductCount);
   }
   await categoryRepository.updateCategoryActiveStatus(id, Boolean(isActive));
   return await categoryRepository.findCategoryById(id);

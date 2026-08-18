@@ -1,14 +1,19 @@
 import asyncHandler from '../../middleware/asyncHandler.js';
 import productService from './productService.js';
 
-export const getProducts = asyncHandler(async (req, res) => {
-  const activeOnly = req.query.activeOnly === 'true' || req.user?.role !== 'admin';
-  const categoryId = req.query.category ? parseInt(req.query.category, 10) : null;
-  const search = req.query.search || '';
-  const limit = parseInt(req.query.limit || '50', 10);
-  const offset = parseInt(req.query.offset || '0', 10);
+export const normalizeProductListQuery = (query = {}) => ({
+  activeOnly: query.activeOnly === 'true',
+  categoryId: query.category ? parseInt(query.category, 10) : null,
+  search: query.search || '',
+  limit: parseInt(query.limit || '50', 10),
+  offset: parseInt(query.offset || '0', 10),
+});
 
-  const products = await productService.getProducts({ activeOnly, categoryId, search, limit, offset });
+export const getProducts = asyncHandler(async (req, res) => {
+  const options = normalizeProductListQuery(req.query);
+  options.activeOnly = options.activeOnly || req.user?.role !== 'admin';
+
+  const products = await productService.getProducts(options);
   res.status(200).json({
     status: 'success',
     data: { products },

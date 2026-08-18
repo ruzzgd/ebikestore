@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import categoryController from './categoryController.js';
-import { authenticate, authorize } from '../../middleware/authMiddleware.js';
+import { authenticate, optionalAuthenticate, authorize } from '../../middleware/authMiddleware.js';
 
 const router = Router();
 
 // Public Category Routes
-router.get('/', categoryController.getCategories);
+router.get('/', optionalAuthenticate, categoryController.getCategories);
 router.get('/:id', categoryController.getCategoryById);
 
 // Admin Category Routes
