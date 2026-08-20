@@ -28,18 +28,11 @@ jobs:
           kubectl apply -f k8s/ebikestore/namespace.yaml
           kubectl apply -f k8s/ebikestore/secret.yaml
           kubectl apply -f k8s/ebikestore/configmap.yaml
-          kubectl apply -f k8s/ebikestore/pvc.yaml
+          kubectl delete statefulset/mysql deployment/minio \
+            service/mysql service/minio \
+            pvc/mysql-pvc pvc/minio-pvc \
+            -n ebikestore --ignore-not-found=true
           kubectl apply -f k8s/ebikestore/svc.yaml
-          kubectl apply -f k8s/ebikestore/statefulset.yaml
-          kubectl rollout status statefulset/mysql \
-            -n ebikestore \
-            --timeout=240s
-          kubectl wait \
-            --for=condition=ready \
-            pod \
-            -l app=mysql \
-            -n ebikestore \
-            --timeout=240s
           kubectl apply -f k8s/ebikestore/deployment.yaml
           kubectl apply -f k8s/ebikestore/ingress.yaml
 
@@ -48,12 +41,11 @@ jobs:
           set -e
           kubectl rollout restart deployment/backend -n ebikestore
           kubectl rollout restart deployment/frontend -n ebikestore
-          kubectl rollout restart deployment/minio -n ebikestore
 
       - name: Wait for application rollouts
         run: |
           set -e
-          for deployment in minio backend frontend; do
+          for deployment in backend frontend; do
             if ! kubectl rollout status "deployment/$deployment" \
               -n ebikestore \
               --timeout=240s; then
