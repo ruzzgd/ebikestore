@@ -5,7 +5,7 @@ metadata:
   namespace: ebikestore
 data:
   NODE_ENV: "staging"
-  SEED_TEST_DATA: "false"
+  SEED_TEST_DATA: "true"
   STARTUP_RETRY_ATTEMPTS: "10"
   STARTUP_RETRY_DELAY_SECONDS: "5"
   PORT: "5000"
