@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fidelo E-Bike Store — Functional Prototype Explanation</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 20mm 18mm 20mm 18mm;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.55;
+      color: #1a1a1a;
+    }
+
+    /* ── Title Page ── */
+    .title-page {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
+      page-break-after: always;
+    }
+
+    .title-page .label {
+      font-size: 12pt;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 12px;
+    }
+
+    .title-page h1 {
+      font-size: 30pt;
+      font-weight: 700;
+      color: #0d6efd;
+      margin-bottom: 6px;
+    }
+
+    .title-page .subtitle {
+      font-size: 13pt;
+      color: #333;
+      max-width: 480px;
+      margin-bottom: 28px;
+    }
+
+    .title-page .guide-label {
+      font-size: 12pt;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    .title-page .url {
+      font-size: 11pt;
+      color: #0d6efd;
+      margin-bottom: 28px;
+    }
+
+    .title-page .meta {
+      font-size: 10pt;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    /* ── Section Headings ── */
+    h2 {
+      font-size: 15pt;
+      font-weight: 700;
+      color: #0d6efd;
+      margin-top: 28px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #0d6efd;
+      padding-bottom: 4px;
+    }
+
+    h3 {
+      font-size: 12pt;
+      font-weight: 600;
+      color: #333;
+      margin-top: 18px;
+      margin-bottom: 6px;
+    }
+
+    p {
+      margin-bottom: 8px;
+    }
+
+    .note {
+      background: #f0f4ff;
+      border-left: 4px solid #0d6efd;
+      padding: 10px 14px;
+      margin: 10px 0 14px;
+      font-size: 10pt;
+      color: #333;
+    }
+
+    /* ── Tables ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 16px;
+      font-size: 10pt;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 7px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #0d6efd;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) td {
+      background: #f8f9fa;
+    }
+
+    /* ── Lists ── */
+    ul, ol {
+      margin: 6px 0 12px 22px;
+    }
+
+    li {
+      margin-bottom: 4px;
+    }
+
+    /* ── Page breaks ── */
+    .page-break {
+      page-break-before: always;
+    }
+
+    /* ── Checklist table ── */
+    .checklist td:first-child {
+      width: 22%;
+      font-weight: 600;
+    }
+
+    /* ── Approval statement ── */
+    .approval {
+      background: #f0f4ff;
+      border: 1px solid #0d6efd;
+      padding: 12px 16px;
+      margin: 14px 0;
+      font-size: 10pt;
+      font-style: italic;
+      color: #333;
+    }
+
+    /* ── Disclaimer ── */
+    .disclaimer {
+      margin-top: 24px;
+      font-size: 9pt;
+      color: #777;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════ TITLE PAGE -->
+<div class="title-page">
+  <div class="label">Functional Prototype</div>
+  <h1>Fidelo E-Bike Store</h1>
+  <div class="subtitle">
+    Centralized Inventory Management and Customer Application System<br />
+    for a Multi-Location E-Bike Business
+  </div>
+  <div class="guide-label">Prototype Explanation and Page Guide</div>
+  <div class="url">Prototype URL: https://ebikestore.ruzzgd.dev</div>
+  <div class="meta">
+    Prepared for client review and system evaluation<br />
+    August 2026
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ 1. PURPOSE -->
+<h2>1. Purpose of This Prototype</h2>
+
+<p>
+  Fidelo E-Bike Store is a working prototype of a centralized, role-based inventory management and customer application system designed for a multi-location e-bike business. It replaces scattered spreadsheets, manual stock counts, and disconnected communication with a connected workflow covering product cataloging, location-specific inventory, inter-branch stock transfers, customer product applications, low-stock notifications, movement audit trails, reports, and user administration.
+</p>
+
+<p>
+  The prototype allows the client and project stakeholders to review the design, navigation, workflows, and core functions before the system is considered ready for final production use.
+</p>
+
+<div class="note">
+  <strong>Prototype status:</strong> The client may explore and test the system now, but only test or demonstration data should be entered. Real customer records, financial information, and live business operations should not yet be processed through this staging version.
+</div>
+
+<!-- ═══════════════════════════════════════════════ 2. SYSTEM OVERVIEW -->
+<h2>2. System Overview</h2>
+
+<p>The system is organized around distinct user roles, each with tailored interfaces and permissions.</p>
+
+<table>
+  <thead>
+    <tr><th>User Role</th><th>Primary Responsibilities</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Visitor</td>
+      <td>Browse the landing page and public product catalogue, view product details and specifications, access contact information, and navigate to privacy policy, terms of service, login, and registration pages.</td>
+    </tr>
+    <tr>
+      <td>Customer</td>
+      <td>Browse and search the product catalogue, view detailed product information, submit product applications, track application status, manage profile and avatar, and receive application-related notifications.</td>
+    </tr>
+    <tr>
+      <td>Branch Staff</td>
+      <td>Manage branch-specific inventory and stock levels, initiate and receive inter-branch stock transfers, review and process customer product applications, set low-stock thresholds, generate and export operational reports, and manage profile.</td>
+    </tr>
+    <tr>
+      <td>Warehouse Staff</td>
+      <td>Manage central warehouse inventory, perform stock-in and stock-out operations, dispatch stock to branch locations via transfers, monitor warehouse movements, and generate inventory reports.</td>
+    </tr>
+    <tr>
+      <td>Administrator</td>
+      <td>Full system access including user management, staff account creation, product and category CRUD, location management, authentication audit logs, system-wide reports, and all inventory and transfer operations.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════ 3. MAIN WORKFLOW -->
+<h2>3. Main Prototype Workflow</h2>
+
+<p>The following sequence illustrates the complete lifecycle of inventory management and customer interactions within the system:</p>
+
+<ol>
+  <li><strong>Product Discovery:</strong> A visitor browses the landing page and public product catalogue, views e-bike details with images and specifications, then registers or signs in.</li>
+  <li><strong>Customer Application:</strong> The customer selects a product, submits an application with their details, and receives a confirmation. The application enters a "Pending" state.</li>
+  <li><strong>Application Review:</strong> Branch staff or administrators review the incoming application, inspect customer details, and move it to "Under Review" status.</li>
+  <li><strong>Application Decision:</strong> Staff approve the application (advancing it toward completion) or reject it with a reason. The customer receives a notification of the status change.</li>
+  <li><strong>Inventory Adjustment:</strong> Upon application completion, inventory levels are adjusted. Staff perform stock-out operations to reflect fulfilled applications.</li>
+  <li><strong>Stock Replenishment:</strong> When branch inventory runs low, staff create an inter-branch transfer request from the warehouse or another branch. The source location approves and dispatches the stock, and the receiving branch confirms receipt.</li>
+  <li><strong>Audit and Reporting:</strong> Every inventory change generates an immutable stock movement record with before/after quantities. Administrators and staff generate reports and export CSV files for operational analysis.</li>
+  <li><strong>Notifications:</strong> The system delivers targeted in-app notifications for low-stock alerts, application status updates, and transfer progress to relevant users.</li>
+</ol>
+
+<!-- ═══════════════════════════════════════════════ 4. PUBLIC PAGES -->
+<div class="page-break"></div>
+<h2>4. Public and Authentication Pages</h2>
+
+<p>These pages form the entry point for all users, providing product information and secure access to the system.</p>
+
+<table>
+  <thead>
+    <tr><th>Route</th><th>Purpose and Key Features</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>/</td>
+      <td>Landing page featuring hero messaging, featured products, store location highlights, and calls to action for signing in or registering.</td>
+    </tr>
+    <tr>
+      <td>/products</td>
+      <td>Public product catalogue displaying available e-bikes with names, images, specifications, pricing, category filtering, and keyword search.</td>
+    </tr>
+    <tr>
+      <td>/products/:id</td>
+      <td>Detailed product view showing full-size images, technical specifications, pricing, stock availability, and an option for authenticated customers to submit an application.</td>
+    </tr>
+    <tr>
+      <td>/login</td>
+      <td>Authenticates users via email and password and routes them to the correct role-based dashboard. Includes a forgot-password link for account recovery.</td>
+    </tr>
+    <tr>
+      <td>/register</td>
+      <td>Customer registration with name, email, and password fields including password strength validation, followed by email verification.</td>
+    </tr>
+    <tr>
+      <td>/forgot-password</td>
+      <td>Password recovery flow where users enter their email to receive a reset link, then set a new password through a verified token.</td>
+    </tr>
+    <tr>
+      <td>/verify-email</td>
+      <td>Processes email verification upon clicking the verification link sent during registration.</td>
+    </tr>
+    <tr>
+      <td>/contact</td>
+      <td>Contact information page with business details and communication channels.</td>
+    </tr>
+    <tr>
+      <td>/privacy</td>
+      <td>Privacy policy explaining the prototype's collection, use, and security of personal information.</td>
+    </tr>
+    <tr>
+      <td>/terms</td>
+      <td>Terms of service stating usage conditions, user obligations, service description, and limitation of liability.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════ 5. CUSTOMER PAGES -->
+<h2>5. Customer Pages</h2>
+
+<p>The customer interface focuses on discovering products, submitting applications, and tracking their progress. All routes require customer authentication.</p>
+
+<table>
+  <thead>
+    <tr><th>Route</th><th>Purpose and Key Features</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>/account</td>
+      <td>Customer dashboard providing an overview of recent activity, application status summaries, and quick-action navigation to key features.</td>
+    </tr>
+    <tr>
+      <td>/account/products</td>
+      <td>Authenticated product browser for customers, displaying the full catalogue with search and filtering within the customer dashboard layout.</td>
+    </tr>
+    <tr>
+      <td>/account/products/:id</td>
+      <td>Customer-specific product detail view with direct access to submit a product application.</td>
+    </tr>
+    <tr>
+      <td>/products/:productId/apply</td>
+      <td>Application submission form where the customer provides their details and submits an application for a selected e-bike product.</td>
+    </tr>
+    <tr>
+      <td>/account/applications</td>
+      <td>Application tracking page listing all submitted applications with their current statuses (Pending, Under Review, Approved, Rejected, Completed, Cancelled).</td>
+    </tr>
+    <tr>
+      <td>/applications/:id</td>
+      <td>Detailed application view showing full application information, status history, and any staff notes or decisions.</td>
+    </tr>
+    <tr>
+      <td>/notifications</td>
+      <td>Notification centre displaying application status updates and system alerts with read/unread state management.</td>
+    </tr>
+    <tr>
+      <td>/profile</td>
+      <td>Account settings for updating profile avatar (uploaded to MinIO), editing personal information, and changing the account password through a verification-code flow.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════ 6. BRANCH STAFF PAGES -->
+<div class="page-break"></div>
+<h2>6. Branch Staff Pages</h2>
+
+<p>The branch staff workspace provides tools for managing local inventory, processing customer applications, handling stock transfers, and generating operational reports. All routes require branch staff authentication.</p>
+
+<table>
+  <thead>
+    <tr><th>Route</th><th>Purpose and Key Features</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>/staff</td>
+      <td>Branch staff dashboard with an operational overview including inventory summary cards, pending transfer counts, application queue indicators, and low-stock alerts for the assigned branch.</td>
+    </tr>
+    <tr>
+      <td>/inventory</td>
+      <td>Branch inventory management interface. View current stock levels by product, perform stock-in and stock-out operations, set location-specific low-stock thresholds, and review the movement audit log.</td>
+    </tr>
+    <tr>
+      <td>/transfers</td>
+      <td>Inter-branch transfer management. Create new transfer requests specifying products, quantities, and destination/source locations. View incoming and outgoing transfer requests with status filters.</td>
+    </tr>
+    <tr>
+      <td>/transfers/:id</td>
+      <td>Transfer detail and action page. Approve or reject incoming requests, dispatch approved transfers, and confirm receipt of incoming stock. Each action records the user and timestamp in the transfer timeline.</td>
+    </tr>
+    <tr>
+      <td>/manage/applications</td>
+      <td>Customer application processing interface. Review incoming product applications, move them through the review pipeline (Review → Approve/Reject → Complete), and add staff notes.</td>
+    </tr>
+    <tr>
+      <td>/reports</td>
+      <td>Operational reporting with data grids for inventory levels, stock movements, transactions, transfers, and applications. Supports date-range filtering and CSV export for offline analysis.</td>
+    </tr>
+    <tr>
+      <td>/notifications</td>
+      <td>Low-stock alerts, transfer status updates, and new application notifications with read/unread management.</td>
+    </tr>
+    <tr>
+      <td>/profile</td>
+      <td>Branch staff account settings for updating profile photo, editing contact details, and changing the account password.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════ 7. WAREHOUSE STAFF PAGES -->
+<h2>7. Warehouse Staff Pages</h2>
+
+<p>The warehouse workspace focuses on central stock management, bulk operations, and dispatch logistics. All routes require warehouse staff authentication.</p>
+
+<table>
+  <thead>
+    <tr><th>Route</th><th>Purpose and Key Features</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>/warehouse</td>
+      <td>Warehouse dashboard displaying an operations overview with inventory summary cards, pending dispatch counts, and recent stock movement activity.</td>
+    </tr>
+    <tr>
+      <td>/inventory</td>
+      <td>Central warehouse inventory management. View and manage stock across all warehouse products, perform stock-in and stock-out operations, adjust low-stock thresholds, and review the full movement history.</td>
+    </tr>
+    <tr>
+      <td>/transfers</td>
+      <td>Transfer request management from the warehouse perspective. View transfer requests from branches, approve or reject requests, and dispatch approved stock to destination locations.</td>
+    </tr>
+    <tr>
+      <td>/transfers/:id</td>
+      <td>Transfer detail page for warehouse operations. Approve incoming requests, prepare and dispatch stock, and track the full transfer lifecycle with timestamps and responsible users.</td>
+    </tr>
+    <tr>
+      <td>/reports</td>
+      <td>Warehouse-focused reporting with inventory, movement, and transfer data grids. Supports filtering and CSV export for warehouse operations analysis.</td>
+    </tr>
+    <tr>
+      <td>/notifications</td>
+      <td>Stock-related notifications including low-stock warnings and transfer status updates.</td>
+    </tr>
+    <tr>
+      <td>/profile</td>
+      <td>Warehouse staff account settings for updating profile photo, editing contact details, and changing the account password.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════ 8. ADMINISTRATOR PAGES -->
+<div class="page-break"></div>
+<h2>8. Administrator Pages</h2>
+
+<p>The administrator dashboard provides full system oversight including user management, product cataloging, location configuration, security monitoring, and all operational features. All routes require administrator authentication.</p>
+
+<table>
+  <thead>
+    <tr><th>Route</th><th>Purpose and Key Features</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>/admin</td>
+      <td>Executive overview with system-wide statistics, KPI summary cards covering total products, active users, pending applications, and recent system activity.</td>
+    </tr>
+    <tr>
+      <td>/admin/products</td>
+      <td>Product catalogue management. Add new e-bike products with images (stored in MinIO), specifications, and pricing. Edit existing products and toggle active/inactive status.</td>
+    </tr>
+    <tr>
+      <td>/admin/products/:id</td>
+      <td>Administrator-specific product detail view with management controls for editing and status changes.</td>
+    </tr>
+    <tr>
+      <td>/admin/categories</td>
+      <td>Product category management. Create, edit, and toggle active status of product categories used to organize the e-bike catalogue.</td>
+    </tr>
+    <tr>
+      <td>/admin/locations</td>
+      <td>Store and warehouse location management. View and configure branch and warehouse locations with their operational details.</td>
+    </tr>
+    <tr>
+      <td>/admin/users</td>
+      <td>User administration. List all registered customers and staff, filter by role or active status, create new staff and warehouse accounts with assigned locations, and activate or deactivate user accounts.</td>
+    </tr>
+    <tr>
+      <td>/admin/audit-logs</td>
+      <td>Authentication audit log viewer for security monitoring. Displays login attempts, password changes, email verifications, and other authentication events with timestamps and IP addresses.</td>
+    </tr>
+    <tr>
+      <td>/inventory</td>
+      <td>System-wide inventory management with access to all location stock levels, stock-in/out operations, threshold configuration, and the complete movement audit trail.</td>
+    </tr>
+    <tr>
+      <td>/transfers</td>
+      <td>Full transfer oversight across all locations. Create, approve, reject, dispatch, and receive inter-branch transfers with complete visibility.</td>
+    </tr>
+    <tr>
+      <td>/manage/applications</td>
+      <td>Application management with full administrative privileges. Process customer applications through all lifecycle states.</td>
+    </tr>
+    <tr>
+      <td>/reports</td>
+      <td>Comprehensive reporting suite with system-wide data grids for inventory, movements, transactions, transfers, and applications. Supports date-range filtering and CSV export.</td>
+    </tr>
+    <tr>
+      <td>/notifications</td>
+      <td>System-wide notification centre aggregating low-stock alerts, transfer updates, application events, and administrative notifications.</td>
+    </tr>
+    <tr>
+      <td>/profile</td>
+      <td>Administrator account settings for updating profile photo, editing contact details, and changing the account password.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ═══════════════════════════════════════════════ 9. FEATURES -->
+<div class="page-break"></div>
+<h2>9. Prototype Features Available for Evaluation</h2>
+
+<p>The prototype includes the following technical implementations and interface features:</p>
+
+<ul>
+  <li>Responsive public website with product catalogue for desktop and mobile screens</li>
+  <li>Email/password authentication with registration, email verification, forgot-password reset flow, and role-based dashboard routing</li>
+  <li>Product catalogue with images stored in MinIO, specifications, pricing, category filtering, and keyword search</li>
+  <li>Product category management with CRUD operations and active/inactive toggling</li>
+  <li>Customer product application system with submission, multi-step review pipeline, and status tracking</li>
+  <li>Location-specific inventory management with individual stock levels and configurable low-stock thresholds</li>
+  <li>Stock-in and stock-out operations with append-only movement history recording before/after quantities</li>
+  <li>Inter-branch transfer workflow covering request creation, approval/rejection, dispatch, and receipt with full audit trail</li>
+  <li>In-app notification system delivering low-stock alerts, application status updates, and transfer progress to targeted users</li>
+  <li>Operational reports with data grids and CSV export for inventory, movements, transactions, transfers, and applications</li>
+  <li>User administration with staff account provisioning, role assignment, location scoping, and account activation controls</li>
+  <li>Authentication audit logging capturing login attempts, password changes, and security events with timestamps</li>
+  <li>Profile management with avatar uploads stored in MinIO object storage across all roles</li>
+  <li>CSRF protection, rate-limiting on authentication endpoints, and secure HTTP-only cookie-based JWT sessions</li>
+  <li>Multi-location architecture supporting distinct branch and warehouse inventories under a unified system</li>
+</ul>
+
+<!-- ═══════════════════════════════════════════════ 10. EVALUATION -->
+<h2>10. Suggested Client Evaluation</h2>
+
+<p>The client should evaluate the prototype using the following end-to-end scenario:</p>
+
+<ol>
+  <li>Browse the landing page, public product catalogue, and legal pages as a visitor.</li>
+  <li>Register a test customer account and verify the email.</li>
+  <li>Sign in as the customer, browse the product catalogue, view a product's details, and submit an application.</li>
+  <li>Sign in as a branch staff member, review the incoming application, and advance it through the review pipeline.</li>
+  <li>Perform a stock-out operation on the branch inventory to reflect the fulfilled application, then complete it.</li>
+  <li>Observe the low-stock notification when inventory falls below the configured threshold.</li>
+  <li>Create an inter-branch transfer request from the warehouse to replenish branch stock.</li>
+  <li>Sign in as warehouse staff, approve and dispatch the transfer.</li>
+  <li>Return as branch staff to receive the incoming transfer and confirm updated stock levels.</li>
+  <li>Navigate to reports, filter by date range, and export a CSV report.</li>
+  <li>Sign in as an administrator, review users, audit logs, products, categories, and locations.</li>
+  <li>Return as the customer to view the updated application status and check notifications.</li>
+  <li>Check the system on both desktop and mobile devices.</li>
+</ol>
+
+<!-- ═══════════════════════════════════════════════ 11. CHECKLIST -->
+<div class="page-break"></div>
+<h2>11. Feedback and Approval Checklist</h2>
+
+<p>Please use this checklist to evaluate the prototype and note any required adjustments.</p>
+
+<table class="checklist">
+  <thead>
+    <tr><th>Review Area</th><th>Questions for the Client</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Application workflow</td>
+      <td>Does the application submission → review → approval → completion process match the expected business procedure?</td>
+    </tr>
+    <tr>
+      <td>Roles and permissions</td>
+      <td>Can each user (customer, branch staff, warehouse staff, admin) access the functions they need without unnecessary options?</td>
+    </tr>
+    <tr>
+      <td>Inventory management</td>
+      <td>Are stock-in, stock-out, threshold alerts, and movement records complete and accurate for each location?</td>
+    </tr>
+    <tr>
+      <td>Transfer workflow</td>
+      <td>Does the request → approve → dispatch → receive transfer process reflect actual inter-branch logistics?</td>
+    </tr>
+    <tr>
+      <td>Product catalogue</td>
+      <td>Are product details, images, categories, and search/filter behavior meeting expectations?</td>
+    </tr>
+    <tr>
+      <td>Notifications</td>
+      <td>Are low-stock alerts and status updates reaching the right users at the right time?</td>
+    </tr>
+    <tr>
+      <td>Reports</td>
+      <td>Are the inventory, movement, transfer, and application reports providing the information needed for operational decisions?</td>
+    </tr>
+    <tr>
+      <td>Interface</td>
+      <td>Are labels, navigation, page layout, and mobile behavior clear?</td>
+    </tr>
+    <tr>
+      <td>Final requirements</td>
+      <td>What must be changed or added before production approval?</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="approval">
+  Recommended approval statement: "The client has reviewed the Fidelo E-Bike Store functional prototype and has provided feedback on the demonstrated pages, workflows, and features. Approval of the prototype confirms the intended direction of the system but does not yet represent production acceptance."
+</div>
+
+<!-- ═══════════════════════════════════════════════ 12. NEXT STEPS -->
+<h2>12. Next Steps Before Live Use</h2>
+
+<ol>
+  <li>Collect and document client feedback.</li>
+  <li>Implement and verify the approved revisions.</li>
+  <li>Complete functional, usability, security, and data-handling tests.</li>
+  <li>Prepare production configuration, credentials, storage, backups, and monitoring.</li>
+  <li>Create authorized production user accounts and provide user training.</li>
+  <li>Obtain final acceptance before processing real business or customer information.</li>
+</ol>
+
+<p class="disclaimer">
+  This document explains the current Fidelo E-Bike Store functional prototype for demonstration and client review. It is not a legal, financial, privacy-compliance, or production-readiness certification.
+</p>
+
+</body>
+</html>

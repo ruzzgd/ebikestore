@@ -5,6 +5,7 @@ This folder contains the maintained system documentation and regenerated diagram
 ## Document set
 
 - [System documentation (PDF)](./system_documentation.pdf)
+- [Prototype explanation (PDF)](./fidelo_prototype_explanation.pdf)
 - [System architecture](./diagrams/fidelo-architecture.png)
 - [Entity relationship diagram](./diagrams/fidelo-erd.png)
 - [Role capabilities / use cases](./diagrams/fidelo-use-case.png)
@@ -23,4 +24,14 @@ The checked-in JavaScript generator has no npm package dependency. It requires I
 
 ```bash
 node docs/generate-docs.js
+```
+
+### Prototype explanation PDF
+
+Regenerate the prototype explanation PDF with a Chrome-compatible browser:
+
+```bash
+google-chrome --headless --no-sandbox --disable-gpu \
+  --print-to-pdf=docs/fidelo_prototype_explanation.pdf \
+  "file://$(pwd)/docs/fidelo_prototype_explanation.html"
 ```
