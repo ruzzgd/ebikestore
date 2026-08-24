@@ -8,13 +8,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const seedAssetsDir = path.join(__dirname, 'seed-assets', 'products');
-const refreshImageSkus = new Set(
-  (process.env.SEED_REFRESH_PRODUCT_IMAGES || '')
-    .split(',')
-    .map((sku) => sku.trim().toUpperCase())
-    .filter(Boolean)
-);
-
 const testProducts = [
   {
     category: 'E-Bikes',
@@ -124,12 +117,6 @@ export const seedTestProducts = async () => {
         [prod.sku]
       );
 
-      const shouldRefreshImage = existingRows.length > 0 && refreshImageSkus.has(prod.sku);
-      if (existingRows.length > 0 && !shouldRefreshImage) {
-        console.log(`[SEED] Skipped ${prod.sku} - already exists`);
-        continue;
-      }
-
       // Read local image file
       const imagePath = path.join(seedAssetsDir, prod.imageFile);
       let fileBuffer;
@@ -149,7 +136,7 @@ export const seedTestProducts = async () => {
       const imageKey = await uploadImage(fileBuffer, mimeType, prod.imageFile);
       console.log(`[SEED] Uploaded image for ${prod.sku} -> ${imageKey}`);
 
-      if (shouldRefreshImage) {
+      if (existingRows.length > 0) {
         await query(
           `UPDATE products
            SET category_id = ?, name = ?, description = ?, unit_price = ?, image_key = ?, updated_at = CURRENT_TIMESTAMP
@@ -157,7 +144,7 @@ export const seedTestProducts = async () => {
           [categoryIds.get(prod.category), prod.name, prod.description, prod.price, imageKey, existingRows[0].id]
         );
         await deleteImage(existingRows[0].image_key);
-        console.log(`[SEED] Replaced image for ${prod.sku}`);
+        console.log(`[SEED] Updated existing product and image for ${prod.sku}`);
         continue;
       }
 
