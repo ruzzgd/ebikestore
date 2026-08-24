@@ -56,7 +56,7 @@ export function HomePage() {
         }} />
         <img 
           src="/images/fidelo-ebike-hero.jpg"
-          alt="Fidelo Electric Bicycle"
+          alt="Fidelo electric passenger cart"
           style={{
             position: 'absolute',
             top: 0,
@@ -90,11 +90,11 @@ export function HomePage() {
               maxWidth: '500px',
               fontWeight: 400
             }}>
-              Browse available electric bicycles across Fidelo branches. Submit your application online and complete your transaction in-store.
+              Browse Fidelo electric passenger and utility carts across our branches. Submit your application online and complete your transaction in-store.
             </p>
             <div className="hero-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <Link to="/products" className="btn primary" style={{ padding: '0 1.5rem', height: '48px', fontSize: '1rem' }}>
-                Browse E-Bikes
+                Browse Electric Carts
               </Link>
               <Link to="/register" className="btn secondary" style={{ padding: '0 1.5rem', height: '48px', fontSize: '1rem' }}>
                 Create Account
@@ -130,7 +130,7 @@ export function HomePage() {
           <div className="home-section-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
             <div>
               <h2 style={{ fontSize: '2rem', fontWeight: 600, color: '#0f172a', letterSpacing: '-0.02em', marginBottom: '0.5rem' }}>Featured Models</h2>
-              <p style={{ color: 'var(--color-text-muted)' }}>Explore our latest electric bicycles</p>
+              <p style={{ color: 'var(--color-text-muted)' }}>Explore our latest electric passenger and utility carts</p>
             </div>
             <Link to="/products" className="btn ghost">
               View All Products
@@ -179,17 +179,17 @@ export function HomePage() {
               <div style={{ width: '100%', height: '500px', background: '#f1f5f9', borderRadius: '8px', overflow: 'hidden' }}>
                 <img 
                   src="/images/fidelo-ebike-hero.jpg" 
-                  alt="Riding Fidelo E-Bike" 
+                  alt="Fidelo electric passenger cart" 
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                 />
               </div>
             </div>
             <div>
               <h2 style={{ fontSize: '2.5rem', fontWeight: 600, color: '#0f172a', marginBottom: '1.5rem', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-                Designed for the modern commute.
+                Built for practical electric mobility.
               </h2>
               <p style={{ fontSize: '1.125rem', color: '#475569', marginBottom: '2rem', lineHeight: 1.7 }}>
-                Our electric bicycles combine performance, reliability, and minimal design. With our connected inventory system, you can easily find the model you need across our branch network.
+                Our covered electric carts combine passenger comfort, everyday utility, and dependable local mobility. With our connected inventory system, you can easily find the model you need across our branch network.
               </p>
               <ul style={{ display: 'grid', gap: '1rem', marginBottom: '2rem', listStyle: 'none', padding: 0 }}>
                 {['Premium build quality', 'Long-lasting battery systems', 'Connected branch inventory', 'In-store servicing and support'].map((item, i) => (
@@ -214,12 +214,12 @@ export function HomePage() {
             <h2 style={{ fontSize: '2.5rem', fontWeight: 600, marginBottom: '1rem', letterSpacing: '-0.02em', color: '#ffffff' }}>
               The Purchase Process
             </h2>
-            <p style={{ color: '#94a3b8', fontSize: '1.125rem' }}>A streamlined approach to getting your new e-bike.</p>
+              <p style={{ color: '#94a3b8', fontSize: '1.125rem' }}>A streamlined approach to getting your new electric cart.</p>
           </div>
           
           <div className="process-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2rem' }}>
             {[
-              { num: '01', title: 'Browse', desc: 'Explore available e-bikes in our catalog.' },
+              { num: '01', title: 'Browse', desc: 'Explore available electric carts in our catalog.' },
               { num: '02', title: 'Check Availability', desc: 'See availability across Fidelo branches.' },
               { num: '03', title: 'Apply', desc: 'Submit your customer application online.' },
               { num: '04', title: 'Visit Branch', desc: 'Coordinate with store staff to complete the transaction.' }
@@ -275,14 +275,14 @@ export function HomePage() {
       <section className="info-section">
         <div className="container">
           <div style={{ maxWidth: '680px', marginBottom: '3rem' }}>
-            <span className="eyebrow" style={{ color: '#0f766e' }}>MORE THAN A BIKE</span>
+            <span className="eyebrow" style={{ color: '#0f766e' }}>ELECTRIC MOBILITY FOR EVERYDAY NEEDS</span>
             <h2 style={{ fontSize: 'clamp(2rem, 4vw, 2.75rem)', margin: '.65rem 0 1rem' }}>Support for every part of your ride.</h2>
-            <p style={{ color: '#64748b', fontSize: '1.05rem', lineHeight: 1.75 }}>Choosing an e-bike is about range, service, and fit—not only appearance. Our team helps you compare models, locate available stock, and understand what happens after you apply.</p>
+            <p style={{ color: '#64748b', fontSize: '1.05rem', lineHeight: 1.75 }}>Choosing an electric cart is about capacity, range, service, and intended use—not only appearance. Our team helps you compare models, locate available stock, and understand what happens after you apply.</p>
           </div>
           <div className="info-grid">
             <article className="info-card"><BatteryCharging size={30} /><h3>Choose the right range</h3><p>Compare the models in our catalog and speak with branch staff about your daily route, charging access, and riding needs.</p></article>
             <article className="info-card"><ShieldCheck size={30} /><h3>Clear application process</h3><p>Your online application reserves your interest for staff review. Final availability, requirements, and payment are confirmed in-store.</p></article>
-            <article className="info-card"><Headphones size={30} /><h3>Local after-sales support</h3><p>Visit the Fidelo location nearest you for product guidance, pickup coordination, and help caring for your e-bike.</p></article>
+            <article className="info-card"><Headphones size={30} /><h3>Local after-sales support</h3><p>Visit the Fidelo location nearest you for product guidance, pickup coordination, and help caring for your electric cart.</p></article>
           </div>
           <div style={{ marginTop: '2.5rem', padding: '1.5rem', borderRadius: '14px', background: '#f0fdfa', border: '1px solid #99f6e4', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <div><h3 style={{ marginBottom: '.25rem' }}>Still deciding which model fits?</h3><p style={{ color: '#475569' }}>Tell our team about your commute and preferred branch.</p></div>
@@ -302,7 +302,7 @@ export function HomePage() {
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
             <Link to="/products" className="btn primary" style={{ height: '48px', padding: '0 2rem' }}>
-              Shop E-Bikes
+              Shop Electric Carts
             </Link>
           </div>
         </div>

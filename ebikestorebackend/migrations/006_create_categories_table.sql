@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS categories (
 -- Idempotent Seed Data for Master Categories
 INSERT INTO categories (name, description, is_active)
 VALUES 
-    ('E-Bikes', 'Electric bicycle models and fully assembled units', true),
-    ('Spare Parts', 'Replacement components, batteries, motors, tires, and repair parts', true),
-    ('Accessories', 'Riding gear, helmets, locks, lighting, and storage accessories', true)
+    ('E-Bikes', 'Electric passenger, shuttle, utility, and cargo cart models', true),
+    ('Spare Parts', 'Replacement batteries, brake components, motors, tires, and repair parts', true),
+    ('Accessories', 'Chargers, weather covers, lighting, and electric cart accessories', true)
 ON DUPLICATE KEY UPDATE description = VALUES(description);
