@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
-import { Bike, ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
+import { CarFront, ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
 import productService from '../../services/productService.js';
 import { useAuth } from '../../hooks/useAuth.js';
 
@@ -82,7 +82,7 @@ export function ProductDetailPage() {
             <img src={imageUrl} alt={product.name} style={{ maxWidth: '100%', maxHeight: '350px', objectFit: 'contain', borderRadius: 'var(--radius-md)' }} />
           ) : (
             <div style={{ textAlign: 'center', color: 'var(--color-text-muted)' }}>
-              <Bike size={80} style={{ marginBottom: '1rem' }} />
+              <CarFront size={80} style={{ marginBottom: '1rem' }} />
               <p style={{ fontSize: '0.85rem' }}>No Image Uploaded</p>
             </div>
           )}

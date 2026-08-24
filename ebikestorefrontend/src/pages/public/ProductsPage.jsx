@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
-import { Search, Tag, Bike, Package, ArrowRight, RefreshCw } from 'lucide-react';
+import { Search, Tag, CarFront, Package, ArrowRight, RefreshCw } from 'lucide-react';
 import productService from '../../services/productService.js';
 import categoryService from '../../services/categoryService.js';
 
@@ -151,7 +151,7 @@ export function ProductsPage() {
                   {imageUrl ? (
                     <img src={imageUrl} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <Bike size={48} color="#94a3b8" />
+                    <CarFront size={48} color="#94a3b8" />
                   )}
                 </div>
 

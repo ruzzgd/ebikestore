@@ -67,7 +67,7 @@ const testProducts = [
   {
     category: 'Accessories',
     name: 'Fidelo All-Weather Cart Cover',
-    sku: 'ACC-COVER-C1',
+    sku: 'ACC-HELMET-C1',
     price: 1899.00,
     description: 'A fitted weather cover with clear panels for supported Fidelo electric passenger carts.',
     imageFile: 'cart-cover.jpg',
@@ -75,7 +75,7 @@ const testProducts = [
   {
     category: 'Accessories',
     name: 'Fidelo Portable Cart Charger',
-    sku: 'ACC-CHARGER-U1',
+    sku: 'ACC-LOCK-U1',
     price: 1299.00,
     description: 'A portable charger and cable assembly for supported Fidelo electric cart battery systems.',
     imageFile: 'charging-cable.jpg',
@@ -150,7 +150,12 @@ export const seedTestProducts = async () => {
       console.log(`[SEED] Uploaded image for ${prod.sku} -> ${imageKey}`);
 
       if (shouldRefreshImage) {
-        await query(`UPDATE products SET image_key = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [imageKey, existingRows[0].id]);
+        await query(
+          `UPDATE products
+           SET category_id = ?, name = ?, description = ?, unit_price = ?, image_key = ?, updated_at = CURRENT_TIMESTAMP
+           WHERE id = ?`,
+          [categoryIds.get(prod.category), prod.name, prod.description, prod.price, imageKey, existingRows[0].id]
+        );
         await deleteImage(existingRows[0].image_key);
         console.log(`[SEED] Replaced image for ${prod.sku}`);
         continue;

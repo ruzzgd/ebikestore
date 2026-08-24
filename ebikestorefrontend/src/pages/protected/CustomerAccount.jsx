@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Bike, CheckCircle2, ClipboardList, Clock3, Package, ShieldCheck, Tag, UserRound } from 'lucide-react';
+import { ArrowRight, CarFront, CheckCircle2, ClipboardList, Clock3, Package, ShieldCheck, Tag, UserRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
 import applicationService from '../../services/applicationService.js';
@@ -36,7 +36,7 @@ export function CustomerAccount() {
   return <div className="customer-dashboard">
     <section className="customer-welcome-card">
       <div><span className="section-eyebrow">CUSTOMER WORKSPACE</span><h1>Welcome back, {user?.name?.split(/\s+/)[0] || 'Rider'}.</h1><p>Track your applications, explore available products, and keep your account details up to date.</p></div>
-      <Link className="btn-refresh primary" to="/account/products"><Bike size={17} /> Browse Products</Link>
+      <Link className="btn-refresh primary" to="/account/products"><CarFront size={17} /> Browse Products</Link>
     </section>
 
     {error && <div className="inventory-alert error">Unable to load application summary: {error}</div>}
@@ -51,7 +51,7 @@ export function CustomerAccount() {
       <header><div><span className="section-eyebrow">SHOP BY CATEGORY</span><h2 id="customer-category-title">Find what you need</h2></div><Link to="/account/products">View all products <ArrowRight size={15} /></Link></header>
       <div className="customer-category-grid">
         {categories.map((category) => {
-          const Icon = category.name === 'E-Bikes' ? Bike : category.name === 'Accessories' ? Tag : Package;
+          const Icon = category.name === 'E-Bikes' ? CarFront : category.name === 'Accessories' ? Tag : Package;
           return <Link key={category.id} to={`/account/products?category=${category.id}`} className="customer-category-card"><span><Icon size={22} /></span><div><strong>{category.name}</strong><small>{Number(category.active_product_count || 0)} active product{Number(category.active_product_count || 0) === 1 ? '' : 's'}</small></div><ArrowRight size={17} /></Link>;
         })}
       </div>

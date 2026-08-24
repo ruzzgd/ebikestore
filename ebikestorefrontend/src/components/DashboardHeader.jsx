@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { BarChart3, Bike, Boxes, ClipboardCheck, LayoutDashboard, LogOut, Package, UserRound, Users } from 'lucide-react';
+import { BarChart3, CarFront, Boxes, ClipboardCheck, LayoutDashboard, LogOut, Package, UserRound, Users } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth.js';
 import NotificationBell from './NotificationBell.jsx';
 
@@ -9,7 +9,7 @@ const ROLE_HOME = { admin: '/admin', branch_staff: '/staff', warehouse_staff: '/
 const NAV_ITEMS = {
   admin: [
     { to: '/admin', label: 'Overview', icon: LayoutDashboard, end: true },
-    { to: '/admin/products', label: 'Products', icon: Bike },
+    { to: '/admin/products', label: 'Products', icon: CarFront },
     { to: '/inventory', label: 'Inventory', icon: Boxes },
     { to: '/transfers', label: 'Transfers', icon: Package },
     { to: '/manage/applications', label: 'Applications', icon: ClipboardCheck },
@@ -31,7 +31,7 @@ const NAV_ITEMS = {
   customer: [
     { to: '/account', label: 'My Account', icon: LayoutDashboard, end: true },
     { to: '/account/applications', label: 'Applications', icon: ClipboardCheck },
-    { to: '/account/products', label: 'Browse Products', icon: Bike },
+    { to: '/account/products', label: 'Browse Products', icon: CarFront },
   ],
 };
 

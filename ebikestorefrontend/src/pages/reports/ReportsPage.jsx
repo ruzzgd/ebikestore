@@ -3,7 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import reportService from '../../services/reportService';
 import locationService from '../../services/locationService';
 import { downloadCSV } from '../../utils/csvExport';
-import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Bike, Boxes, CheckCircle2, ClipboardCheck, Download, PackageCheck, RefreshCw, TriangleAlert, X } from 'lucide-react';
+import { ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, CarFront, Boxes, CheckCircle2, ClipboardCheck, Download, PackageCheck, RefreshCw, TriangleAlert, X } from 'lucide-react';
 import './ReportsPage.css';
 
 const TAB_OVERVIEW = 'overview';
@@ -113,7 +113,7 @@ export default function ReportsPage() {
         <section className="report-metric-group"><div className="report-group-heading"><span className="inventory"><Boxes size={17} /></span><div><h3>Inventory position</h3><p>Current catalog and stock readiness</p></div></div><div className="report-metric-grid three">
           <article className="report-metric-card primary"><span><PackageCheck size={20} /></span><div><small>Total inventory units</small><strong>{data.totalInventoryUnits}</strong><p>Physical units currently recorded</p></div></article>
           <article className="report-metric-card warning"><span><TriangleAlert size={20} /></span><div><small>Low-stock records</small><strong>{data.lowStockCount}</strong><p>At or below assigned thresholds</p></div></article>
-          <article className="report-metric-card danger"><span><Bike size={20} /></span><div><small>Out of stock</small><strong>{data.outOfStockCount}</strong><p>Records requiring replenishment</p></div></article>
+          <article className="report-metric-card danger"><span><CarFront size={20} /></span><div><small>Out of stock</small><strong>{data.outOfStockCount}</strong><p>Records requiring replenishment</p></div></article>
         </div></section>
         <section className="report-metric-group"><div className="report-group-heading"><span className="movement"><ArrowLeftRight size={17} /></span><div><h3>Movement activity</h3><p>Units handled during the selected period</p></div></div><div className="report-metric-grid four">
           <article className="report-compact-metric"><ArrowDownToLine size={18} /><span><small>Stock in</small><strong>{data.stockInUnits}</strong></span></article>

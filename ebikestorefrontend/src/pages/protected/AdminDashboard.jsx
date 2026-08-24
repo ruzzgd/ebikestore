@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, UserPlus, Users, Tag, Bike, MapPin, Package, ArrowLeftRight, ClipboardCheck, BarChart, TrendingUp, AlertTriangle, CheckCircle2, Activity, UserCheck, UserX, Menu, X } from 'lucide-react';
+import { ShieldCheck, UserPlus, Users, Tag, CarFront, MapPin, Package, ArrowLeftRight, ClipboardCheck, BarChart, TrendingUp, AlertTriangle, CheckCircle2, Activity, UserCheck, UserX, Menu, X } from 'lucide-react';
 import authService from '../../services/authService.js';
 import locationService from '../../services/locationService.js';
 import reportService from '../../services/reportService.js';
@@ -170,7 +170,7 @@ export function AdminDashboard() {
 
         <div id="admin-quick-menu" className={`admin-quick-menu ${adminMenuOpen ? 'open' : ''}`}>
           <Link to="/admin/products" className="btn-refresh primary" id="link-admin-products">
-            <Bike size={16} />
+            <CarFront size={16} />
             <span>Manage Products</span>
           </Link>
           <Link to="/admin/categories" className="btn-refresh" id="link-admin-categories">
@@ -196,7 +196,7 @@ export function AdminDashboard() {
       </div>
 
       {overviewStats && <><div className="admin-stat-grid">
-        {[[Package, 'Total inventory', overviewStats.totalInventoryUnits, 'Units across all locations', 'teal'], [Bike, 'Active products', overviewStats.activeProducts, 'Available catalog entries', 'blue'], [AlertTriangle, 'Low stock', overviewStats.lowStockCount, `${overviewStats.outOfStockCount} currently out of stock`, 'amber'], [CheckCircle2, 'Completed', overviewStats.completedTransactions, 'Transactions in last 30 days', 'green']].map(([Icon, label, value, hint, tone]) => <article className={`admin-stat-card ${tone}`} key={label}><span><Icon size={19} /></span><div><small>{label}</small><strong>{value}</strong><p>{hint}</p></div></article>)}
+        {[[Package, 'Total inventory', overviewStats.totalInventoryUnits, 'Units across all locations', 'teal'], [CarFront, 'Active products', overviewStats.activeProducts, 'Available catalog entries', 'blue'], [AlertTriangle, 'Low stock', overviewStats.lowStockCount, `${overviewStats.outOfStockCount} currently out of stock`, 'amber'], [CheckCircle2, 'Completed', overviewStats.completedTransactions, 'Transactions in last 30 days', 'green']].map(([Icon, label, value, hint, tone]) => <article className={`admin-stat-card ${tone}`} key={label}><span><Icon size={19} /></span><div><small>{label}</small><strong>{value}</strong><p>{hint}</p></div></article>)}
       </div><AdminCharts stats={overviewStats} /></>}
 
       <div className="grid-cols-2">

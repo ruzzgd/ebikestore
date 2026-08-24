@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Bike, Eye, Edit2, CheckCircle, XCircle, ArrowLeft, RefreshCw, ImagePlus } from 'lucide-react';
+import { CarFront, Eye, Edit2, CheckCircle, XCircle, ArrowLeft, RefreshCw, ImagePlus } from 'lucide-react';
 import productService from '../../services/productService.js';
 import categoryService from '../../services/categoryService.js';
 import uploadService from '../../services/uploadService.js';
@@ -275,7 +275,7 @@ export function AdminProductsPage() {
             </div>
           ) : products.length === 0 ? (
             <div style={{ marginTop: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-              <Bike size={32} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+              <CarFront size={32} style={{ marginBottom: '1rem', opacity: 0.5 }} />
               <p>No products found in the catalog.</p>
               <p style={{ fontSize: '0.85rem' }}>Use the form to create a new product.</p>
             </div>
