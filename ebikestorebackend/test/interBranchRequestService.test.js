@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ALLOWED_TRANSITIONS, generateRequestReference, isTransitionAllowed } from '../src/features/interBranchRequests/interBranchRequestService.js';
+import { ALLOWED_TRANSITIONS, canReviewRequest, generateRequestReference, isTransitionAllowed } from '../src/features/interBranchRequests/interBranchRequestService.js';
 
 test('request workflow allows only the Phase 5 lifecycle transitions', () => {
   assert.deepEqual(ALLOWED_TRANSITIONS.pending, ['approved', 'rejected']);
@@ -21,4 +21,12 @@ test('dispatch and receipt cannot repeat after their status has advanced', () =>
 test('request reference contains the year and a random non-sequential suffix', () => {
   const reference = generateRequestReference(new Date('2026-08-12T00:00:00Z'));
   assert.match(reference, /^REQ-2026-[A-F0-9]{6}$/);
+});
+
+test('request creators cannot review their own unit requests', () => {
+  const request = { requested_by_user_id: 7, source_location_id: 2 };
+  assert.equal(canReviewRequest({ id: 7, role: 'admin', location_id: null }, request), false);
+  assert.equal(canReviewRequest({ id: 8, role: 'admin', location_id: null }, request), true);
+  assert.equal(canReviewRequest({ id: 9, role: 'branch_staff', location_id: 2 }, request), true);
+  assert.equal(canReviewRequest({ id: 10, role: 'branch_staff', location_id: 3 }, request), false);
 });

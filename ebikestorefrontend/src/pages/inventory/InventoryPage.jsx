@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ArrowDownCircle, ArrowUpCircle, History, Package, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Archive, ArchiveRestore, ArrowDownCircle, ArrowUpCircle, History, Package, RefreshCw, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth.js';
 import inventoryService from '../../services/inventoryService.js';
 import stockMovementService from '../../services/stockMovementService.js';
@@ -19,7 +19,8 @@ export function InventoryPage() {
   const [locationFilter, setLocationFilter] = useState('');
   const [search, setSearch] = useState('');
   const [movementType, setMovementType] = useState('');
-  const [operation, setOperation] = useState({ type: 'stock_in', productId: '', locationId: '', quantity: '', note: '' });
+  const [showArchived, setShowArchived] = useState(false);
+  const [operation, setOperation] = useState({ type: 'stock_in', productId: '', locationId: '', quantity: '', buyerName: '', note: '' });
   const [thresholds, setThresholds] = useState({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -35,7 +36,7 @@ export function InventoryPage() {
     setLoading(true);
     if (!preserveMessage) setMessage({ type: '', text: '' });
     try {
-      const filters = { locationId: effectiveLocation || '', search };
+      const filters = { locationId: effectiveLocation || '', search, archived: isAdmin && showArchived };
       const movementFilters = { locationId: effectiveLocation || '', type: movementType, limit: 100 };
       const requests = [inventoryService.getInventory(filters), stockMovementService.getMovements(movementFilters), productService.getProducts({ activeOnly: true })];
       if (isAdmin) requests.push(locationService.getLocations());
@@ -50,7 +51,7 @@ export function InventoryPage() {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { loadData(); }, [locationFilter, movementType]);
+  useEffect(() => { loadData(); }, [locationFilter, movementType, showArchived]);
 
   const submitOperation = async (event) => {
     event.preventDefault();
@@ -62,14 +63,26 @@ export function InventoryPage() {
         locationId: Number(isAdmin ? operation.locationId : user.location_id),
         quantity: Number(operation.quantity), note: operation.note,
       };
-      if (operation.type === 'stock_out') await inventoryService.stockOut(payload);
+      if (operation.type === 'walk_in_sale') await inventoryService.recordWalkInSale({ ...payload, buyerName: operation.buyerName });
+      else if (operation.type === 'stock_out') await inventoryService.stockOut(payload);
       else await inventoryService.stockIn(payload);
-      setMessage({ type: 'success', text: `${operation.type === 'stock_in' ? 'Stock-in' : 'Stock-out'} recorded with its movement ledger entry.` });
-      setOperation((current) => ({ ...current, quantity: '', note: '' }));
+      const operationLabel = operation.type === 'walk_in_sale' ? 'Walk-in sale' : operation.type === 'stock_in' ? 'Stock-in' : 'Stock-out';
+      setMessage({ type: 'success', text: `${operationLabel} recorded with its movement ledger entry.` });
+      setOperation((current) => ({ ...current, quantity: '', buyerName: '', note: '' }));
       await loadData({ preserveMessage: true });
     } catch (error) { setMessage({ type: 'error', text: error.message }); }
     finally { setSubmitting(false); }
   };
+
+  const toggleArchive = async (item) => {
+    try {
+      await inventoryService.setArchivedState(item.id, !item.is_archived);
+      setMessage({ type: 'success', text: `${item.product_name} inventory ${item.is_archived ? 'restored' : 'archived'}.` });
+      await loadData({ preserveMessage: true });
+    } catch (error) { setMessage({ type: 'error', text: error.message }); }
+  };
+
+  const getImageUrl = (imageKey) => imageKey ? `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/uploads/images/${imageKey}` : null;
 
   const saveThreshold = async (item) => {
     try {
@@ -86,9 +99,11 @@ export function InventoryPage() {
         <button className="btn-refresh" onClick={loadData}><RefreshCw size={15} /> Refresh</button>
       </div>
       {message.text && <div className={`inventory-alert ${message.type}`}>{message.text}</div>}
+      {!showArchived && inventory.some((item) => item.is_low_stock) && <div className="inventory-alert low-stock-warning"><AlertTriangle size={18} /> {inventory.filter((item) => item.is_low_stock).length} item(s) need restocking. Zero-stock products require immediate attention.</div>}
 
       <div className="inventory-toolbar card">
         {isAdmin && <label>Location<select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} style={inputStyle}><option value="">All locations</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select></label>}
+        {isAdmin && <label>Records<select value={showArchived ? 'archived' : 'active'} onChange={(e) => setShowArchived(e.target.value === 'archived')} style={inputStyle}><option value="active">Active inventory</option><option value="archived">Archived inventory</option></select></label>}
         <label>Search product<input value={search} onChange={(e) => setSearch(e.target.value)} style={inputStyle} placeholder="Name or SKU" /></label>
         <button className="btn-refresh" onClick={loadData}>Apply filters</button>
         <div className="inventory-summary"><Package size={18} /> {inventory.length} configured records · <AlertTriangle size={18} /> {inventory.filter((item) => item.is_low_stock).length} low stock</div>
@@ -98,19 +113,25 @@ export function InventoryPage() {
         <section className="card inventory-table-card">
           <h2>Current Stock</h2>
           {loading ? <p>Loading inventory…</p> : inventory.length === 0 ? <p className="muted">No stock records are configured for these filters. Use stock-in to establish initial stock.</p> : (
-            <div className="table-scroll"><table className="inventory-table"><thead><tr><th>Product</th><th>Location</th><th>Quantity</th><th>Status</th><th>Threshold</th></tr></thead><tbody>
-              {inventory.map((item) => <tr key={item.id}><td><strong>{item.product_name}</strong><small>{item.sku}</small></td><td>{item.location_name}</td><td className="quantity-cell">{item.quantity}</td><td><span className={`availability-badge ${item.availability}`}>{LABELS[item.availability]}</span></td><td><div className="threshold-control"><input type="number" min="0" value={thresholds[item.id] ?? 0} onChange={(e) => setThresholds({ ...thresholds, [item.id]: e.target.value })} /><button onClick={() => saveThreshold(item)}>Save</button></div></td></tr>)}
+            isAdmin ? <div className="inventory-card-grid">{inventory.map((item) => <article className={`inventory-product-card ${item.is_low_stock ? 'low-stock' : ''} ${item.quantity <= 0 ? 'zero-stock' : ''}`} key={item.id}>
+              <div className="inventory-product-image">{getImageUrl(item.image_key) ? <img src={getImageUrl(item.image_key)} alt={item.product_name} /> : <Package size={36} />}</div>
+              <div className="inventory-product-copy"><small>{item.location_name}</small><h3>{item.product_name}</h3><span className="muted">{item.sku}</span><div className="inventory-card-status"><strong>{item.quantity} unit(s)</strong><span className={`availability-badge ${item.availability}`}>{LABELS[item.availability]}</span></div>
+              {!item.is_archived && <div className="threshold-control"><input aria-label={`Threshold for ${item.product_name}`} type="number" min="0" value={thresholds[item.id] ?? 0} onChange={(e) => setThresholds({ ...thresholds, [item.id]: e.target.value })} /><button onClick={() => saveThreshold(item)}>Save threshold</button></div>}
+              <button className="btn-refresh" disabled={!item.is_archived && Number(item.quantity) !== 0} onClick={() => toggleArchive(item)}>{item.is_archived ? <ArchiveRestore size={15} /> : <Archive size={15} />}{item.is_archived ? 'Restore' : 'Archive'}</button></div>
+            </article>)}</div> : <div className="table-scroll"><table className="inventory-table"><thead><tr><th>Product</th><th>Location</th><th>Quantity</th><th>Status</th><th>Threshold</th></tr></thead><tbody>
+              {inventory.map((item) => <tr className={item.is_low_stock ? 'low-stock-row' : ''} key={item.id}><td><strong>{item.product_name}</strong><small>{item.sku}</small></td><td>{item.location_name}</td><td className="quantity-cell">{item.quantity}</td><td><span className={`availability-badge ${item.availability}`}>{LABELS[item.availability]}</span></td><td><div className="threshold-control"><input type="number" min="0" value={thresholds[item.id] ?? 0} onChange={(e) => setThresholds({ ...thresholds, [item.id]: e.target.value })} /><button onClick={() => saveThreshold(item)}>Save</button></div></td></tr>)}
             </tbody></table></div>
           )}
         </section>
 
         <aside className="card stock-operation-card">
-          <h2>{operation.type === 'stock_in' ? <ArrowUpCircle size={21} /> : <ArrowDownCircle size={21} />} Stock Operation</h2>
+          <h2>{operation.type === 'stock_in' ? <ArrowUpCircle size={21} /> : operation.type === 'walk_in_sale' ? <ShoppingBag size={21} /> : <ArrowDownCircle size={21} />} Stock Operation</h2>
           <form onSubmit={submitOperation}>
-            <label>Operation<select style={inputStyle} value={operation.type} onChange={(e) => setOperation({ ...operation, type: e.target.value })}><option value="stock_in">Stock In</option><option value="stock_out">Stock Out</option></select></label>
+            <label>Operation<select style={inputStyle} value={operation.type} onChange={(e) => setOperation({ ...operation, type: e.target.value })}><option value="stock_in">Stock In</option><option value="stock_out">Stock Out</option><option value="walk_in_sale">Walk-in Buyer</option></select></label>
             <label>Product<select required style={inputStyle} value={operation.productId} onChange={(e) => setOperation({ ...operation, productId: e.target.value })}><option value="">Select product</option>{products.map((product) => <option key={product.id} value={product.id}>{product.name} ({product.sku})</option>)}</select></label>
             {isAdmin ? <label>Location<select required style={inputStyle} value={operation.locationId} onChange={(e) => setOperation({ ...operation, locationId: e.target.value })}><option value="">Select location</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select></label> : <div className="fixed-location"><span>Fixed location</span><strong>{user?.location_name}</strong></div>}
-            {operation.type === 'stock_out' && <div className="current-quantity">Current quantity: <strong>{selectedInventory?.quantity ?? 0}</strong></div>}
+            {operation.type !== 'stock_in' && <div className="current-quantity">Current quantity: <strong>{selectedInventory?.quantity ?? 0}</strong></div>}
+            {operation.type === 'walk_in_sale' && <label>Buyer name / reference<input required maxLength="255" style={inputStyle} value={operation.buyerName} onChange={(e) => setOperation({ ...operation, buyerName: e.target.value })} /></label>}
             <label>Quantity<input required type="number" min="1" step="1" style={inputStyle} value={operation.quantity} onChange={(e) => setOperation({ ...operation, quantity: e.target.value })} /></label>
             <label>Note (optional)<textarea maxLength="1000" rows="3" style={inputStyle} value={operation.note} onChange={(e) => setOperation({ ...operation, note: e.target.value })} /></label>
             <button disabled={submitting} className="btn-refresh primary" type="submit">{submitting ? 'Recording…' : 'Confirm operation'}</button>
@@ -119,7 +140,7 @@ export function InventoryPage() {
       </div>
 
       <section className="card movement-section">
-        <div className="movement-header"><h2><History size={21} /> Movement History</h2><select value={movementType} onChange={(e) => setMovementType(e.target.value)} style={inputStyle}><option value="">All types</option><option value="stock_in">Stock In</option><option value="stock_out">Stock Out</option><option value="adjustment_in">Adjustment In</option><option value="adjustment_out">Adjustment Out</option></select></div>
+        <div className="movement-header"><h2><History size={21} /> Movement History</h2><select value={movementType} onChange={(e) => setMovementType(e.target.value)} style={inputStyle}><option value="">All types</option><option value="stock_in">Stock In</option><option value="stock_out">Stock Out</option><option value="walk_in_sale">Walk-in Sale</option><option value="adjustment_in">Adjustment In</option><option value="adjustment_out">Adjustment Out</option></select></div>
         <div className="table-scroll"><table className="inventory-table"><thead><tr><th>Timestamp</th><th>Product</th><th>Location</th><th>Type</th><th>Moved</th><th>Before → After</th><th>Performed by</th><th>Note / Reference</th></tr></thead><tbody>
           {movements.map((movement) => <tr key={movement.id}><td>{new Date(movement.created_at).toLocaleString()}</td><td>{movement.product_name}<small>{movement.sku}</small></td><td>{movement.location_name}</td><td><span className={`movement-badge ${movement.type}`}>{movement.type.replace('_', ' ')}</span></td><td>{movement.quantity}</td><td>{movement.quantity_before} → {movement.quantity_after}</td><td>{movement.performed_by_name}</td><td>{movement.note || '—'}{(movement.request_reference || movement.application_reference) && <small>Reference: {movement.request_reference || movement.application_reference}</small>}</td></tr>)}
           {!loading && movements.length === 0 && <tr><td colSpan="8" className="muted">No movement history matches these filters.</td></tr>}

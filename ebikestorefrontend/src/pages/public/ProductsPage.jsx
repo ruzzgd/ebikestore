@@ -180,10 +180,15 @@ export function ProductsPage() {
                   <span style={{ fontSize: '1.35rem', fontWeight: '700', color: '#0f172a' }}>
                     {formatCurrency(prod.unit_price)}
                   </span>
-                <Link to={`${isAccountCatalog ? '/account/products' : '/products'}/${prod.id}`} className="btn primary" style={{ fontSize: '0.85rem' }} id={`link-product-detail-${prod.id}`}>
+                <div className="catalog-card-actions">
+                <Link to={`${isAccountCatalog ? '/account/products' : '/products'}/${prod.id}`} className="btn secondary" style={{ fontSize: '0.85rem' }} id={`link-product-detail-${prod.id}`}>
                     <span>View Details</span>
                     <ArrowRight size={14} />
                   </Link>
+                  {prod.availability === 'out_of_stock'
+                    ? <button className="btn primary" disabled>Out of Stock</button>
+                    : <Link to={`/products/${prod.id}/apply`} className="btn primary" id={`link-buy-product-${prod.id}`}>Buy</Link>}
+                </div>
                 </div>
               </div>
             );

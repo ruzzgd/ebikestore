@@ -28,13 +28,22 @@ const headerStyle = {
 
 export function SensitiveActionConfirmModal({ isOpen, onClose, onConfirm, title = "Confirm Action", message = "Please enter your password to confirm this action." }) {
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onConfirm(password);
-    setPassword('');
+    setSubmitting(true);
+    setError('');
+    try {
+      await onConfirm(password);
+      setPassword('');
+    } catch (err) {
+      setError(err.message || 'Unable to confirm this action.');
+      setPassword('');
+    } finally { setSubmitting(false); }
   };
 
   return (
@@ -50,6 +59,7 @@ export function SensitiveActionConfirmModal({ isOpen, onClose, onConfirm, title 
         </div>
         <p style={{ marginBottom: '1rem' }}>{message}</p>
         <form onSubmit={handleSubmit}>
+          {error && <div className="inventory-alert error" role="alert">{error}</div>}
           <label>
             Password
             <input 
@@ -62,8 +72,8 @@ export function SensitiveActionConfirmModal({ isOpen, onClose, onConfirm, title 
             />
           </label>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-            <button type="button" className="btn-refresh" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-refresh primary">Confirm</button>
+            <button type="button" className="btn-refresh" onClick={onClose} disabled={submitting}>Cancel</button>
+            <button type="submit" className="btn-refresh primary" disabled={submitting}>{submitting ? 'Checking…' : 'Confirm'}</button>
           </div>
         </form>
       </div>

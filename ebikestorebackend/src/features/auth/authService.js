@@ -331,7 +331,7 @@ export const verifyCurrentPassword = async (userId, password) => {
   if (!password) {
     throw new BadRequestError('Password confirmation is required for this action');
   }
-  const user = await userRepository.findUserById(userId);
+  const user = await userRepository.findUserAuthById(userId);
   if (!user) {
     throw new UnauthorizedError('User profile not found');
   }

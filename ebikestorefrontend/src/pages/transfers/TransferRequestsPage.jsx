@@ -19,6 +19,8 @@ export function TransferRequestsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [sourceInventory, setSourceInventory] = useState([]);
   const [feedback, setFeedback] = useState({ type: '', text: '' });
   const [form, setForm] = useState({ sourceLocationId: '', destinationLocationId: '', note: '', requestedDeliveryDate: '', reasonForTransfer: '', items: [{ productId: '', quantityRequested: 1 }] });
 
@@ -42,6 +44,14 @@ export function TransferRequestsPage() {
   };
 
   useEffect(() => { loadData(); }, [statusFilter]);
+  useEffect(() => {
+    if (!form.sourceLocationId) { setSourceInventory([]); return; }
+    requestService.getSourceInventory(form.sourceLocationId)
+      .then(setSourceInventory)
+      .catch((error) => setFeedback({ type: 'error', text: error.message }));
+  }, [form.sourceLocationId]);
+
+  const stockForProduct = (productId) => sourceInventory.find((item) => String(item.product_id) === String(productId));
 
   const updateItem = (index, field, value) => {
     setForm((current) => ({ ...current, items: current.items.map((item, itemIndex) => itemIndex === index ? { ...item, [field]: value } : item) }));
@@ -62,6 +72,7 @@ export function TransferRequestsPage() {
         reasonForTransfer: form.reasonForTransfer,
         items: form.items.map((item) => ({ productId: Number(item.productId), quantityRequested: Number(item.quantityRequested) })),
       });
+      setFormOpen(false);
       navigate(`/transfers/${request.id}`);
     } catch (error) { setFeedback({ type: 'error', text: error.message }); }
     finally { setSubmitting(false); }
@@ -69,11 +80,15 @@ export function TransferRequestsPage() {
 
   return (
     <div>
-      <div className="inventory-heading"><div><h1>Inter-Branch Transfers</h1><p>Request and trace stock between Fidelo operating locations.</p></div><button className="btn-refresh" onClick={loadData}><RefreshCw size={15} /> Refresh</button></div>
+      <div className="inventory-heading"><div><h1>Inter-Branch Transfers</h1><p>Request and trace stock between Fidelo operating locations.</p></div><div className="management-heading-actions"><button className="btn-refresh primary" onClick={() => setFormOpen(true)}><Plus size={15} /> New Unit Request</button><button className="btn-refresh" onClick={loadData}><RefreshCw size={15} /> Refresh</button></div></div>
       {feedback.text && <div className={`inventory-alert ${feedback.type}`}>{feedback.text}</div>}
-      <div className="transfer-layout">
-        <section className="card transfer-form-card">
-          <h2><Plus size={21} /> New Unit Request</h2>
+      {formOpen && <div className="request-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="unit-request-title">
+        <section className="card transfer-form-card request-modal">
+          <button type="button" className="request-modal-close" onClick={() => setFormOpen(false)} aria-label="Close request form">×</button>
+          <div className="request-modal-header">
+            <span className="request-modal-icon"><Plus size={22} /></span>
+            <div><span className="section-eyebrow">BRANCH INVENTORY</span><h2 id="unit-request-title">New Unit Request</h2><p>Request available products from another Fidelo location.</p></div>
+          </div>
           <form onSubmit={submitRequest}>
             {isAdmin ? <label>Destination<select required style={inputStyle} value={form.destinationLocationId} onChange={(e) => setForm({ ...form, destinationLocationId: e.target.value, sourceLocationId: '' })}><option value="">Select destination</option>{activeLocations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select></label> : <div className="fixed-location"><span>Destination</span><strong>{user?.location_name}</strong></div>}
             <label>Request stock from<select required style={inputStyle} value={form.sourceLocationId} onChange={(e) => setForm({ ...form, sourceLocationId: e.target.value })}><option value="">Select source</option>{sourceOptions.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select></label>
@@ -81,8 +96,8 @@ export function TransferRequestsPage() {
             {form.items.map((item, index) => {
               const selectedElsewhere = new Set(form.items.filter((_, itemIndex) => itemIndex !== index).map((entry) => String(entry.productId)));
               return <div className="request-item-row" key={index}>
-                <select required style={inputStyle} value={item.productId} onChange={(e) => updateItem(index, 'productId', e.target.value)}><option value="">Select product</option>{products.filter((product) => !selectedElsewhere.has(String(product.id))).map((product) => <option key={product.id} value={product.id}>{product.name} ({product.sku})</option>)}</select>
-                <input required type="number" min="1" step="1" style={inputStyle} value={item.quantityRequested} onChange={(e) => updateItem(index, 'quantityRequested', e.target.value)} aria-label="Requested quantity" />
+                <select required style={inputStyle} value={item.productId} onChange={(e) => updateItem(index, 'productId', e.target.value)}><option value="">Select product</option>{products.filter((product) => !selectedElsewhere.has(String(product.id))).map((product) => { const stock = stockForProduct(product.id); const quantity = Number(stock?.quantity || 0); return <option key={product.id} value={product.id} disabled={!form.sourceLocationId || quantity <= 0}>{product.name} ({product.sku}) — {form.sourceLocationId ? `${quantity} available${quantity <= 0 ? ' / OUT OF STOCK' : ''}` : 'select source first'}</option>; })}</select>
+                <input required type="number" min="1" max={stockForProduct(item.productId)?.quantity || undefined} step="1" style={inputStyle} value={item.quantityRequested} onChange={(e) => updateItem(index, 'quantityRequested', e.target.value)} aria-label="Requested quantity" />
                 <button type="button" disabled={form.items.length === 1} onClick={() => removeItem(index)} title="Remove item"><Trash2 size={17} /></button>
               </div>;
             })}
@@ -92,6 +107,7 @@ export function TransferRequestsPage() {
             <button className="btn-refresh primary" disabled={submitting} type="submit">{submitting ? 'Creating…' : 'Create pending request'}</button>
           </form>
         </section>
+      </div>}
 
         <section className="card transfer-list-card">
           <div className="movement-header"><h2><ClipboardList size={21} /> Request History</h2><select style={inputStyle} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="">All statuses</option>{Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
@@ -102,7 +118,6 @@ export function TransferRequestsPage() {
             </Link>
           ))}</div>}
         </section>
-      </div>
     </div>
   );
 }

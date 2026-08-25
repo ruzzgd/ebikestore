@@ -23,6 +23,11 @@ export async function getRequest(id) {
   return response.data?.request;
 }
 
+export async function getSourceInventory(locationId) {
+  const response = await apiClient(`/inter-branch-requests/source-inventory/${locationId}`);
+  return response.data?.inventory || [];
+}
+
 const transition = async (id, action, password) => {
   const response = await apiClient(`/inter-branch-requests/${id}/${action}`, { method: 'POST', body: { password } });
   return response.data?.request;
@@ -33,4 +38,4 @@ export const rejectRequest = (id, password) => transition(id, 'reject', password
 export const dispatchRequest = (id, password) => transition(id, 'dispatch', password);
 export const receiveRequest = (id, password) => transition(id, 'receive', password);
 
-export default { createRequest, listRequests, getRequest, approveRequest, rejectRequest, dispatchRequest, receiveRequest };
+export default { createRequest, listRequests, getRequest, getSourceInventory, approveRequest, rejectRequest, dispatchRequest, receiveRequest };

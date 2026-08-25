@@ -34,6 +34,14 @@ export const findUserById = async (id) => {
   return rows.length > 0 ? rows[0] : null;
 };
 
+export const findUserAuthById = async (id) => {
+  const [rows] = await query(
+    `SELECT id, password_hash, is_active FROM users WHERE id = ? LIMIT 1`,
+    [id]
+  );
+  return rows[0] || null;
+};
+
 /**
  * Create a new user record
  * @param {object} userData
@@ -149,6 +157,7 @@ export const markVerificationCodeConsumed = async (codeId) => {
 export default {
   findUserByEmail,
   findUserById,
+  findUserAuthById,
   createUser,
   updateUserEmailVerified,
   updateUserActiveStatus,

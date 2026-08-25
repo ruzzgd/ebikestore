@@ -11,6 +11,7 @@ const filtersFromQuery = (query) => ({
   dateTo: query.dateTo || null,
   limit: query.limit || 100,
   offset: query.offset || 0,
+  archived: query.archived || false,
 });
 
 export const listInventory = asyncHandler(async (req, res) => {
@@ -38,6 +39,16 @@ export const stockOut = asyncHandler(async (req, res) => {
   res.status(200).json({ status: 'success', data: { inventory } });
 });
 
+export const walkInSale = asyncHandler(async (req, res) => {
+  const inventory = await inventoryService.recordWalkInSale(req.user, req.body);
+  res.status(200).json({ status: 'success', data: { inventory } });
+});
+
+export const updateArchivedState = asyncHandler(async (req, res) => {
+  const inventory = await inventoryService.setArchivedState(req.user, req.params.id, req.body.isArchived);
+  res.status(200).json({ status: 'success', data: { inventory } });
+});
+
 export const updateThreshold = asyncHandler(async (req, res) => {
   const inventory = await inventoryService.setLowStockThreshold(req.user, req.params.id, req.body.lowStockThreshold);
   res.status(200).json({ status: 'success', data: { inventory } });
@@ -48,4 +59,4 @@ export const listMovements = asyncHandler(async (req, res) => {
   res.status(200).json({ status: 'success', data: { movements } });
 });
 
-export default { listInventory, listLowStock, getInventoryRecord, stockIn, stockOut, updateThreshold, listMovements };
+export default { listInventory, listLowStock, getInventoryRecord, stockIn, stockOut, walkInSale, updateArchivedState, updateThreshold, listMovements };

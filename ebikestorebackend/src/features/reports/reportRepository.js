@@ -28,7 +28,7 @@ const getOverviewStats = async ({ locationId, startDate, endDate }) => {
   const movementQuery = `
     SELECT 
       IFNULL(SUM(CASE WHEN type = 'stock_in' THEN quantity ELSE 0 END), 0) as stockInUnits,
-      IFNULL(SUM(CASE WHEN type = 'stock_out' THEN quantity ELSE 0 END), 0) as stockOutUnits,
+      IFNULL(SUM(CASE WHEN type IN ('stock_out', 'walk_in_sale') THEN quantity ELSE 0 END), 0) as stockOutUnits,
       IFNULL(SUM(CASE WHEN type = 'transfer_in' THEN quantity ELSE 0 END), 0) as transferInUnits,
       IFNULL(SUM(CASE WHEN type = 'transfer_out' THEN quantity ELSE 0 END), 0) as transferOutUnits
     FROM stock_movements

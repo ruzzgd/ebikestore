@@ -20,6 +20,10 @@ export const ALLOWED_TRANSITIONS = Object.freeze({
 });
 
 export const isTransitionAllowed = (currentStatus, nextStatus) => Boolean(ALLOWED_TRANSITIONS[currentStatus]?.includes(nextStatus));
+export const canReviewRequest = (actor, request) => Boolean(
+  actor && request && actor.id !== request.requested_by_user_id &&
+  (actor.role === 'admin' || actor.location_id === request.source_location_id)
+);
 
 export const generateRequestReference = (date = new Date()) => {
   const year = date.getFullYear();
@@ -116,6 +120,15 @@ export const createRequest = async (authUser, data) => {
     if (!product) throw new NotFoundError('A requested product does not exist');
     if (!product.is_active) throw new BadRequestError(`Product '${product.name}' is inactive`);
   });
+  const sourceInventory = await Promise.all(items.map((item) => inventoryRepository.findByProductAndLocation(item.productId, sourceLocationId)));
+  sourceInventory.forEach((inventory, index) => {
+    if (!inventory || inventory.is_archived || Number(inventory.quantity) <= 0) {
+      throw new ConflictError(`'${products[index].name}' is out of stock at the selected source`);
+    }
+    if (items[index].quantityRequested > Number(inventory.quantity)) {
+      throw new ConflictError(`Only ${inventory.quantity} unit(s) of '${products[index].name}' are available at the selected source`);
+    }
+  });
 
   const connection = await getPool().getConnection();
   try {
@@ -160,6 +173,14 @@ export const getRequest = async (authUser, idValue) => {
   return detail;
 };
 
+export const listSourceInventory = async (authUser, locationIdValue) => {
+  await getActor(authUser);
+  const locationId = parsePositiveInteger(locationIdValue, 'locationId');
+  const location = await locationRepository.findLocationById(locationId);
+  if (!location || !location.is_active) throw new NotFoundError('Active source location not found');
+  return inventoryRepository.listInventory({ locationId });
+};
+
 const runStatusTransaction = async (idValue, callback) => {
   const requestId = parsePositiveInteger(idValue, 'requestId');
   const connection = await getPool().getConnection();
@@ -179,7 +200,9 @@ export const approveRequest = async (authUser, idValue, password) => {
   await verifyCurrentPassword(authUser.userId, password);
   return runStatusTransaction(idValue, async (connection, requestId) => {
     const request = await requestRepository.lockRequestById(connection, requestId);
-    if (actor.role !== 'admin' && actor.location_id !== request.source_location_id) {
+    if (!request) throw new NotFoundError('Inter-branch request not found');
+    if (actor.id === request.requested_by_user_id) throw new ForbiddenError('You cannot approve your own request');
+    if (!canReviewRequest(actor, request)) {
       throw new ForbiddenError('Only administrators or source-location staff may approve requests');
     }
     validateLockedRequest(request, 'pending', 'approved');
@@ -206,7 +229,9 @@ export const rejectRequest = async (authUser, idValue, password) => {
   await verifyCurrentPassword(authUser.userId, password);
   return runStatusTransaction(idValue, async (connection, requestId) => {
     const request = await requestRepository.lockRequestById(connection, requestId);
-    if (actor.role !== 'admin' && actor.location_id !== request.source_location_id) {
+    if (!request) throw new NotFoundError('Inter-branch request not found');
+    if (actor.id === request.requested_by_user_id) throw new ForbiddenError('You cannot reject your own request');
+    if (!canReviewRequest(actor, request)) {
       throw new ForbiddenError('Only administrators or source-location staff may reject requests');
     }
     validateLockedRequest(request, 'pending', 'rejected');
@@ -299,4 +324,4 @@ export const receiveRequest = async (authUser, idValue, password) => {
   });
 };
 
-export default { createRequest, listRequests, getRequest, approveRequest, rejectRequest, dispatchRequest, receiveRequest };
+export default { createRequest, listRequests, getRequest, listSourceInventory, approveRequest, rejectRequest, dispatchRequest, receiveRequest };

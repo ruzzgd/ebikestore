@@ -28,6 +28,16 @@ export async function stockOut(data) {
   return response.data?.inventory;
 }
 
+export async function recordWalkInSale(data) {
+  const response = await apiClient('/inventory/walk-in-sale', { method: 'POST', body: data });
+  return response.data?.inventory;
+}
+
+export async function setArchivedState(id, isArchived) {
+  const response = await apiClient(`/inventory/${id}/archive`, { method: 'PATCH', body: { isArchived } });
+  return response.data?.inventory;
+}
+
 export async function updateThreshold(id, lowStockThreshold) {
   const response = await apiClient(`/inventory/${id}/threshold`, {
     method: 'PATCH', body: { lowStockThreshold },
@@ -35,4 +45,4 @@ export async function updateThreshold(id, lowStockThreshold) {
   return response.data?.inventory;
 }
 
-export default { getInventory, getLowStock, stockIn, stockOut, updateThreshold };
+export default { getInventory, getLowStock, stockIn, stockOut, recordWalkInSale, setArchivedState, updateThreshold };

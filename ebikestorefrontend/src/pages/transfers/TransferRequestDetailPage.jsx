@@ -31,13 +31,13 @@ export function TransferRequestDetailPage() {
 
   const confirmAction = async (password) => {
     const { actionLabel, handler } = modalConfig;
-    setModalConfig({ isOpen: false, actionLabel: '', handler: null });
     setActing(actionLabel);
     setFeedback({ type: '', text: '' });
     try {
       setRequest(await handler(id, password));
       setFeedback({ type: 'success', text: `Request ${actionLabel} completed successfully.` });
-    } catch (error) { setFeedback({ type: 'error', text: error.message }); }
+      setModalConfig({ isOpen: false, actionLabel: '', handler: null });
+    } catch (error) { throw error; }
     finally { setActing(''); }
   };
 
@@ -45,7 +45,8 @@ export function TransferRequestDetailPage() {
   if (!request) return <div className="card"><p>{feedback.text || 'Request not found.'}</p><Link to="/transfers" className="btn-refresh">Back to requests</Link></div>;
 
   const isAdmin = user?.role === 'admin';
-  const canApprove = (isAdmin || Number(user?.location_id) === Number(request.source_location_id)) && request.status === 'pending';
+  const isOwnRequest = Number(user?.id) === Number(request.requested_by_user_id);
+  const canApprove = !isOwnRequest && (isAdmin || Number(user?.location_id) === Number(request.source_location_id)) && request.status === 'pending';
   const canDispatch = request.status === 'approved' && (isAdmin || Number(user?.location_id) === Number(request.source_location_id));
   const canReceive = request.status === 'in_transit' && (isAdmin || Number(user?.location_id) === Number(request.destination_location_id));
   const currentIndex = STEPS.indexOf(request.status);
@@ -57,6 +58,7 @@ export function TransferRequestDetailPage() {
       <section className="card transfer-detail-header">
         <div><span className={`request-status ${request.status}`}>{STATUS_LABELS[request.status]}</span><h1>{request.request_reference}</h1><p>{request.source_location_name} <ArrowRight size={15} /> {request.destination_location_name}</p></div>
         <div className="workflow-actions">
+          {isOwnRequest && request.status === 'pending' && <small className="muted">Your request must be reviewed by another authorized user.</small>}
           {canApprove && <><button disabled={acting} className="btn-refresh approve" onClick={() => runAction('approval', requestService.approveRequest)}><Check size={16} /> Approve</button><button disabled={acting} className="btn-refresh reject" onClick={() => runAction('rejection', requestService.rejectRequest)}><X size={16} /> Reject</button></>}
           {canDispatch && <button disabled={acting} className="btn-refresh primary" onClick={() => runAction('dispatch', requestService.dispatchRequest)}><Send size={16} /> Dispatch stock</button>}
           {canReceive && <button disabled={acting} className="btn-refresh approve" onClick={() => runAction('receipt', requestService.receiveRequest)}><PackageCheck size={16} /> Confirm receipt</button>}

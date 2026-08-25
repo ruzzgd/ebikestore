@@ -22,6 +22,11 @@ export const getRequest = asyncHandler(async (req, res) => {
   res.status(200).json({ status: 'success', data: { request } });
 });
 
+export const listSourceInventory = asyncHandler(async (req, res) => {
+  const inventory = await requestService.listSourceInventory(req.user, req.params.locationId);
+  res.status(200).json({ status: 'success', data: { inventory } });
+});
+
 const action = (serviceAction) => asyncHandler(async (req, res) => {
   const request = await serviceAction(req.user, req.params.id, req.body.password);
   res.status(200).json({ status: 'success', data: { request } });
@@ -32,4 +37,4 @@ export const rejectRequest = action(requestService.rejectRequest);
 export const dispatchRequest = action(requestService.dispatchRequest);
 export const receiveRequest = action(requestService.receiveRequest);
 
-export default { createRequest, listRequests, getRequest, approveRequest, rejectRequest, dispatchRequest, receiveRequest };
+export default { createRequest, listRequests, getRequest, listSourceInventory, approveRequest, rejectRequest, dispatchRequest, receiveRequest };
