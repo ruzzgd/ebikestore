@@ -2,7 +2,7 @@
 
 Fidelo E-Bike Store is a centralized inventory management and customer application system for a multi-location e-bike business. It covers the product catalog, location-based inventory, stock movements, inter-branch transfers, customer applications, notifications, reports, image uploads, and authentication auditing.
 
-> **Staging/demo credentials:** The documented credentials are intentionally shared by the local and staging configurations. Do not reuse them for a production deployment. Never commit the generated `.env` file; the Kubernetes Secret is protected with git-crypt.
+> **Local demo credentials:** The credentials below are development defaults. Change them before using this system on a shared network or with real data. Never commit the generated `.env` file.
 
 ## Local URLs and Credentials
 
@@ -83,6 +83,8 @@ EXIT;
 
 ## Docker Setup
 
+This is the supported setup path. Run PowerShell commands in Windows and all `bash` commands in the Ubuntu/WSL terminal. You do not need to install Node.js, npm, MySQL, or MinIO on Windows or WSL; Docker supplies them.
+
 ### 1. Install Docker CLI and Docker Compose
 
 This setup uses Docker Engine and the Docker Compose CLI plugin. Docker Desktop is not required.
@@ -107,6 +109,18 @@ wsl --install --web-download -d Ubuntu
 ```
 
 Restart Windows when requested.
+
+After restarting, open PowerShell and confirm Ubuntu uses WSL 2:
+
+```powershell
+wsl --list --verbose
+```
+
+The `VERSION` column for Ubuntu must show `2`. If it shows `1`, run:
+
+```powershell
+wsl --set-version Ubuntu 2
+```
 
 ##### B. Open the Ubuntu terminal
 
@@ -145,6 +159,14 @@ Start Docker and configure it to start automatically:
 sudo systemctl enable --now docker
 ```
 
+If WSL reports that it was not started with `systemd`, enable it inside Ubuntu:
+
+```bash
+sudo sh -c 'printf "[boot]\nsystemd=true\n" > /etc/wsl.conf'
+```
+
+Then run `wsl --shutdown` in PowerShell, reopen Ubuntu, and repeat `sudo systemctl enable --now docker`.
+
 Verify the installation:
 
 ```bash
@@ -153,7 +175,13 @@ docker compose version
 docker info
 ```
 
-If `docker info` reports a permission error, run Docker commands with `sudo` or complete Docker's [Linux post-installation steps](https://docs.docker.com/engine/install/linux-postinstall/).
+If `docker info` reports a socket permission error, add your Linux user to Docker's group:
+
+```bash
+sudo usermod -aG docker "$USER"
+```
+
+Close the Ubuntu window, run `wsl --shutdown` in PowerShell, reopen Ubuntu, and verify `docker info` again. Until then, Docker commands require `sudo`.
 
 ### 2. Clone and enter the project
 
@@ -165,6 +193,8 @@ cd ~/projects
 git clone <repository-url>
 cd ebikestore
 ```
+
+Use the repository's HTTPS URL for `<repository-url>` unless GitHub SSH keys are already configured. Git is required; install it with `sudo apt-get install git` if `git --version` fails.
 
 To open the WSL copy in Windows File Explorer, enter the following path and replace `<username>` with your Ubuntu username:
 
@@ -184,9 +214,13 @@ cp .env.example .env
 
 The template contains development defaults that match the credentials documented above. Review and replace its passwords and secrets for any shared or public environment.
 
+Do not change `MYSQL_HOST` or `MINIO_ENDPOINT`: Docker service names are required for container-to-container communication. If you change a host port such as `FRONTEND_PORT`, also update `CORS_ORIGIN`; if you change `BACKEND_PORT`, update `VITE_API_BASE_URL` and rebuild the frontend.
+
 Real email delivery requires a valid `RESEND_API_KEY` and approved sender address. When no usable key is configured, local verification and password-reset codes are printed in the backend logs instead.
 
 ### 4. Build and start Fidelo
+
+Before starting, make sure the default host ports are available: `3000`, `5000`, `3306`, `8080`, `9000`, and `9001`. If another program already uses one, stop that program or change the corresponding port variable in `.env`. Do not change service hostnames. These URLs assume you keep the default ports.
 
 Use the project-standard orchestration command:
 
@@ -202,6 +236,14 @@ Check that all containers are running:
 docker compose ps
 ```
 
+On the first startup, wait until the backend finishes migrations and seeds. Confirm the API is ready from Ubuntu:
+
+```bash
+curl --fail http://localhost:5000/api/v1/health
+```
+
+A successful response has HTTP status `200` and reports `"status":"ok"`. If it is not ready yet, inspect the logs:
+
 Follow backend migration, seed, and startup logs when troubleshooting:
 
 ```bash
@@ -209,6 +251,15 @@ docker compose logs -f backend
 ```
 
 Press `Ctrl+C` to stop following logs; the containers continue running in the background.
+
+If the build or startup fails, do not repeatedly delete volumes. First run:
+
+```bash
+docker compose ps -a
+docker compose logs --tail=200 backend mysql minio
+```
+
+Common causes are a stopped Docker daemon, an occupied host port, an edited `.env` value that no longer matches another setting, or insufficient disk space (`docker system df`).
 
 ### 5. Open and test the system
 
@@ -230,8 +281,11 @@ The installation steps are only required once. Start Windows normally, open Ubun
 
 ```bash
 cd ~/projects/ebikestore
+sudo systemctl start docker
 docker compose up -d
 ```
+
+If Docker is already running, the `systemctl` command simply succeeds. After pulling source changes or editing a Vite build variable, use `docker compose up -d --build` instead.
 
 Then open [http://localhost:3000](http://localhost:3000) in the normal Windows browser.
 
@@ -269,39 +323,6 @@ docker compose exec backend npm run seed:test-users
 docker compose exec backend npm run seed:test-products
 ```
 
-## Kubernetes Staging Deployment
-
-The `k8s/ebikestore` directory contains the k3s staging resources for the React frontend, Express backend, MySQL 8, and MinIO. phpMyAdmin is intentionally available only in Docker Compose and is not deployed to Kubernetes.
-
-Staging endpoints:
-
-- **Application:** `https://ebikestore.ruzzgd.dev`
-- **Backend API:** `https://api-ebikestore.ruzzgd.dev/api/v1`
-- **MinIO API/CDN:** `https://cdn-ebikestore.ruzzgd.dev`
-
-The staging database uses `ebikestore_db`, `ebikestore_user`, and `ebikestore1234`. The initial administrator is `admin@gmail.com` with password `admin1234`. These are staging/demo credentials and must not be reused in production.
-
-The Kubernetes Secret manifest is encrypted in Git using the rule in `.gitattributes`. After cloning the repository on a trusted machine, unlock it with the repository key:
-
-```bash
-git-crypt unlock /secure/path/ebikestore-git-crypt-key
-```
-
-GitHub Actions expects the same binary key encoded as Base64 in a repository secret named `GIT_CRYPT_KEY`. A push to `main` builds the frontend and backend images in GHCR, then the self-hosted runner applies the manifests to the `ebikestore` namespace.
-
-Required cluster components and configuration:
-
-- A self-hosted GitHub Actions runner with `kubectl` and `git-crypt`
-- An nginx ingress controller
-- cert-manager with the `letsencrypt-prod` ClusterIssuer
-- DNS records for all three staging hostnames pointing to the ingress address
-
-Inspect the deployment with:
-
-```bash
-kubectl get pods,svc,ingress,pvc -n ebikestore
-```
-
 ## Automated Checks
 
 Run the backend tests:
@@ -326,14 +347,11 @@ docker compose exec frontend sh -c "cd /app && test -f dist/index.html"
 - **Object storage:** MinIO
 - **Email:** Resend with a development log fallback
 - **Local orchestration:** Docker Compose
-- **Staging orchestration:** Kubernetes/k3s with GitHub Actions
 
 ```text
 ebikestore/
 ├── ebikestorebackend/   # Express API, migrations, tests, and seed scripts
 ├── ebikestorefrontend/  # React and Vite web application
-├── k8s/ebikestore/      # Kubernetes staging manifests
-├── .github/workflows/   # GHCR build and k3s deployment automation
 ├── docs/                # System documentation PDF and diagrams
 ├── docker-compose.yml   # Local service definitions
 └── .env.example         # Development environment template

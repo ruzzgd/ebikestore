@@ -9,7 +9,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ebikestore1234}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-ebikestore1234}
     ports:
-      - "3306:3306"
+      - "${MYSQL_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
