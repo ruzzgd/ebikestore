@@ -5,6 +5,12 @@ import { BadRequestError, UnauthorizedError, ConflictError, NotFoundError, AppEr
 import { sendPasswordChangeCodeEmail, sendPasswordResetEmail, sendVerificationEmail } from '../../providers/resendProvider.js';
 import { deleteImage, uploadImage } from '../../providers/minioProvider.js';
 
+export const assertEmailDeliverySucceeded = (emailResult, message) => {
+  if (!emailResult?.success) {
+    throw new AppError(message, 503);
+  }
+};
+
 /**
  * Register a new public Customer account
  */
@@ -61,7 +67,10 @@ export const registerCustomer = async ({ name, email, password }) => {
 
   if (!emailResult.success) {
     console.warn(`[REGISTRATION WARNING] Account created for ${cleanEmail}, but email sending returned: ${emailResult.error}`);
+    await userRepository.deleteUnverifiedUser(userId);
   }
+
+  assertEmailDeliverySucceeded(emailResult, 'Unable to send the verification code right now. Please try signing up again.');
 
   const user = await userRepository.findUserById(userId);
   return {
@@ -154,11 +163,13 @@ export const resendVerification = async ({ email }) => {
     expiresAt,
   });
 
-  await sendVerificationEmail({
+  const emailResult = await sendVerificationEmail({
     email: cleanEmail,
     code,
     name: user.name,
   });
+
+  assertEmailDeliverySucceeded(emailResult, 'Unable to resend the verification code right now');
 
   return {
     message: 'A new 6-digit verification code has been sent to your email address.',

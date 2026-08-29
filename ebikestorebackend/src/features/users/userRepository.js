@@ -57,6 +57,18 @@ export const createUser = async ({ name, email, passwordHash, role = 'customer',
 };
 
 /**
+ * Remove a newly-created account if its initial verification email could not be delivered.
+ * The verification guard prevents this cleanup from deleting a completed account.
+ */
+export const deleteUnverifiedUser = async (userId) => {
+  const [result] = await query(
+    `DELETE FROM users WHERE id = ? AND is_email_verified = false`,
+    [userId]
+  );
+  return result.affectedRows > 0;
+};
+
+/**
  * Update user email verification status
  * @param {number} userId
  * @param {boolean} isVerified
@@ -159,6 +171,7 @@ export default {
   findUserById,
   findUserAuthById,
   createUser,
+  deleteUnverifiedUser,
   updateUserEmailVerified,
   updateUserActiveStatus,
   updateUserPassword,
