@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Lock } from 'lucide-react';
+import PasswordInput from './PasswordInput.jsx';
 
 const modalOverlayStyle = {
   position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -60,12 +61,11 @@ export function SensitiveActionConfirmModal({ isOpen, onClose, onConfirm, title 
         <p style={{ marginBottom: '1rem' }}>{message}</p>
         <form onSubmit={handleSubmit}>
           {error && <div className="inventory-alert error" role="alert">{error}</div>}
-          <label>
-            Password
-            <input 
-              type="password" 
+          <label style={{ display: 'block', marginBottom: '1rem' }}>
+            <span style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.875rem' }}>Password</span>
+            <PasswordInput 
               required 
-              style={inputStyle} 
+              inputStyle={inputStyle} 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
               autoFocus

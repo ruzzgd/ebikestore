@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, CarFront, CheckCircle2, ClipboardList, Clock3, Package, ShieldCheck, Tag, UserRound } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
 import applicationService from '../../services/applicationService.js';
 import categoryService from '../../services/categoryService.js';
+import ErrorModal from '../../components/ErrorModal.jsx';
 
 const STATUS_LABELS = { submitted: 'Submitted', under_review: 'Under Review', approved: 'Approved', rejected: 'Rejected', completed: 'Completed', cancelled: 'Cancelled' };
 const avatarUrl = (key) => key ? `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/uploads/images/${key}` : null;
@@ -30,14 +31,29 @@ export function CustomerAccount() {
     active: applications.filter((item) => ['submitted', 'under_review', 'approved'].includes(item.status)).length,
     completed: applications.filter((item) => item.status === 'completed').length,
   }), [applications]);
+  const location = useLocation();
   const recentApplications = applications.slice(0, 3);
   const initials = user?.name?.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'C';
+  const firstName = user?.name?.split(/\s+/)[0] || 'Rider';
 
-  return <div className="customer-dashboard">
-    <section className="customer-welcome-card">
-      <div><span className="section-eyebrow">CUSTOMER WORKSPACE</span><h1>Welcome back, {user?.name?.split(/\s+/)[0] || 'Rider'}.</h1><p>Track your applications, explore available products, and keep your account details up to date.</p></div>
-      <Link className="btn-refresh primary" to="/account/products"><CarFront size={17} /> Browse Products</Link>
-    </section>
+  const isNewAccount = Boolean(location.state?.isNew) || (
+    !loading && applications.length === 0 && (
+      !user?.created_at || (new Date() - new Date(user.created_at) < 1000 * 60 * 60 * 24 * 7)
+    )
+  );
+
+  return (
+    <div className="customer-dashboard">
+      <section className="customer-welcome-card">
+        <div>
+          <span className="section-eyebrow">CUSTOMER WORKSPACE</span>
+          <h1>{isNewAccount ? `Welcome to Fidelo, ${firstName}!` : `Welcome back, ${firstName}.`}</h1>
+          <p>Track your applications, explore available products, and keep your account details up to date.</p>
+        </div>
+        <Link className="btn-refresh primary" to="/account/products">
+          <CarFront size={17} /> Browse Products
+        </Link>
+      </section>
 
     {error && <div className="inventory-alert error">Unable to load application summary: {error}</div>}
 
@@ -79,8 +95,10 @@ export function CustomerAccount() {
           {loading ? <div className="customer-empty-state">Loading your applications…</div> : recentApplications.length === 0 ? <div className="customer-empty-state"><ClipboardList size={32} /><strong>No applications yet</strong><p>Browse the catalog and choose a product to get started.</p><Link className="btn-refresh primary" to="/account/products">Browse Products</Link></div> : recentApplications.map((application) => <Link className="customer-application-row" to={`/applications/${application.id}`} key={application.id}><div><span className={`application-status ${application.status}`}>{STATUS_LABELS[application.status]}</span><strong>{application.product_name}</strong><small>{application.application_reference} · {application.location_name}</small></div><ArrowRight size={17} /></Link>)}
         </div>
       </section>
+      </div>
+      <ErrorModal isOpen={Boolean(error)} message={error} onClose={() => setError('')} />
     </div>
-  </div>;
+  );
 }
 
 export default CustomerAccount;

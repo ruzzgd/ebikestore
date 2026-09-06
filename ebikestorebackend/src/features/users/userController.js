@@ -42,9 +42,23 @@ export const updateUserActive = asyncHandler(async (req, res) => {
   });
 });
 
+export const deleteUser = asyncHandler(async (req, res) => {
+  const { password } = req.body;
+  const result = await userService.deleteUserAccount({
+    actorId: req.user.userId,
+    targetId: parseInt(req.params.id, 10),
+    password,
+  });
+  res.status(200).json({
+    status: 'success',
+    data: result,
+  });
+});
+
 export default {
   createStaff,
   getUsers,
   getUserById,
   updateUserActive,
+  deleteUser,
 };

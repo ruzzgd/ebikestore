@@ -78,9 +78,30 @@ export const setUserActiveStatus = async ({ actorId, targetId, isActive, passwor
   return await userRepository.findUserById(targetId);
 };
 
+export const deleteUserAccount = async ({ actorId, targetId, password }) => {
+  if (!password) throw new BadRequestError('Administrator password is required to delete an account');
+  if (actorId === targetId) throw new BadRequestError('You cannot delete your own administrator account');
+  
+  const actorProfile = await userRepository.findUserById(actorId);
+  const actor = actorProfile ? await userRepository.findUserByEmail(actorProfile.email) : null;
+  if (!actor || !(await comparePassword(password, actor.password_hash))) throw new UnauthorizedError('Administrator password is incorrect');
+  
+  const user = await userRepository.findUserById(targetId);
+  if (!user) throw new NotFoundError('User not found');
+
+  const hasActivity = await userRepository.hasUserActivity(targetId);
+  if (hasActivity) {
+    throw new BadRequestError(`Cannot delete user '${user.name}': Account has associated transactions, logs, or movement records. Keep account deactivated to preserve audit trails.`);
+  }
+
+  await userRepository.deleteUserById(targetId);
+  return { success: true, message: `Account for ${user.name} has been permanently deleted.` };
+};
+
 export default {
   createStaffAccount,
   getAllUsers,
   getUserById,
   setUserActiveStatus,
+  deleteUserAccount,
 };

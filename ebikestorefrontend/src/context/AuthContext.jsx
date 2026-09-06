@@ -26,6 +26,7 @@ export function AuthProvider({ children }) {
   const loginUser = async (email, password) => {
     const data = await authService.login({ email, password });
     setUser(data.user);
+    try { localStorage.setItem('auth_login_event', String(Date.now())); } catch (e) {}
     return data.user;
   };
 
@@ -36,8 +37,30 @@ export function AuthProvider({ children }) {
       console.warn('Logout API error:', err.message);
     } finally {
       setUser(null);
+      try { localStorage.setItem('auth_logout_event', String(Date.now())); } catch (e) {}
     }
   };
+
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === 'auth_logout_event') {
+        setUser(null);
+      } else if (e.key === 'auth_login_event') {
+        checkAuth();
+      }
+    };
+
+    const handleUnauthorized = () => {
+      setUser(null);
+    };
+
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
+  }, [checkAuth]);
 
   const value = {
     user,

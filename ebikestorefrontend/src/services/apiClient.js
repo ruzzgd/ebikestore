@@ -77,6 +77,14 @@ export async function apiClient(endpoint, options = {}) {
     }
 
     if (!response.ok) {
+      if (response.status === 401 && !endpoint.includes('/auth/me') && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/register')) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+          if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
+            window.location.href = `/login?expired=true`;
+          }
+        }
+      }
       const error = new Error(data.message || `HTTP request failed with status ${response.status}`);
       error.status = response.status;
       error.data = data;

@@ -177,7 +177,6 @@ export const recordWalkInSale = async (authUser, data) => {
 
 export const setArchivedState = async (authUser, inventoryIdValue, isArchivedValue) => {
   const actor = await getActor(authUser);
-  if (actor.role !== 'admin') throw new ForbiddenError('Only administrators may archive inventory');
   const inventoryId = parsePositiveInteger(inventoryIdValue, 'inventoryId');
   const isArchived = Boolean(isArchivedValue);
   const connection = await getPool().getConnection();
@@ -185,6 +184,7 @@ export const setArchivedState = async (authUser, inventoryIdValue, isArchivedVal
     await connection.beginTransaction();
     const inventory = await inventoryRepository.lockById(connection, inventoryId);
     if (!inventory) throw new NotFoundError('Inventory record not found');
+    resolveLocationAccess(actor, inventory.location_id, { required: true });
     if (isArchived && Number(inventory.quantity) !== 0) throw new ConflictError('Inventory must have zero stock before it can be archived');
     await inventoryRepository.updateArchivedState(connection, inventoryId, isArchived, actor.id);
     await connection.commit();

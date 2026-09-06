@@ -118,6 +118,11 @@ export async function updateUserActive(id, isActive, password) {
   return response.data?.user;
 }
 
+export async function deleteUser(id, password) {
+  const response = await apiClient(`/users/${id}`, { method: 'DELETE', body: { password } });
+  return response.data;
+}
+
 export default {
   register,
   verifyEmail,
@@ -134,4 +139,5 @@ export default {
   createStaffAccount,
   listUsers,
   updateUserActive,
+  deleteUser,
 };

@@ -3,6 +3,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, CheckCircle, ArrowRight, KeyRound, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth.js';
 import authService from '../../services/authService.js';
+import PasswordInput from '../../components/PasswordInput.jsx';
+import ErrorModal from '../../components/ErrorModal.jsx';
 
 const ROLE_REDIRECT_MAP = {
   admin: '/admin',
@@ -195,20 +197,23 @@ export function LoginPage() {
                   </label>
                   <Link to="/forgot-password" className="auth-inline-link">Forgot password?</Link>
                 </div>
-                <div style={{ position: 'relative' }}>
-                  <Lock size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                  <input
-                    type="password"
-                    name="password"
-                    required
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Enter your password"
-                    style={{ width: '100%', padding: '0.75rem 0.75rem 0.75rem 2.5rem', background: '#f8fafc', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '0.95rem', color: '#0f172a', transition: 'all 0.2s', outline: 'none' }}
-                    onFocus={(e) => { e.target.style.borderColor = 'var(--color-brand-primary)'; e.target.style.background = '#ffffff'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.1)'; }}
-                    onBlur={(e) => { e.target.style.borderColor = 'var(--color-border)'; e.target.style.background = '#f8fafc'; e.target.style.boxShadow = 'none'; }}
-                  />
-                </div>
+                <PasswordInput
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Enter your password"
+                  required
+                  showIcon
+                  inputStyle={{
+                    padding: '0.75rem 2.5rem 0.75rem 2.5rem',
+                    background: '#f8fafc',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '8px',
+                    fontSize: '0.95rem',
+                    color: '#0f172a',
+                    outline: 'none',
+                  }}
+                />
               </div>
 
               <button
@@ -279,6 +284,7 @@ export function LoginPage() {
           )}
         </div>
       </div>
+      <ErrorModal isOpen={Boolean(error)} message={error} onClose={() => setError('')} />
     </div>
   );
 }

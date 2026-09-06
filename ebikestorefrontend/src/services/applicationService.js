@@ -32,6 +32,6 @@ export const startReview = (id) => transition(id, 'review');
 export const approveApplication = (id) => transition(id, 'approve');
 export const rejectApplication = (id, rejectionReason) => transition(id, 'reject', { rejectionReason });
 export const cancelApplication = (id) => transition(id, 'cancel');
-export const completeApplication = (id) => transition(id, 'complete');
+export const completeApplication = (id, password) => transition(id, 'complete', typeof password === 'object' ? password : { password });
 
 export default { createApplication, getMyApplications, getApplications, getApplication, startReview, approveApplication, rejectApplication, cancelApplication, completeApplication };

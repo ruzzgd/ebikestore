@@ -166,6 +166,23 @@ export const markVerificationCodeConsumed = async (codeId) => {
   await query(`UPDATE verification_codes SET is_consumed = true WHERE id = ?`, [codeId]);
 };
 
+export const hasUserActivity = async (userId) => {
+  const [apps] = await query('SELECT 1 FROM customer_applications WHERE customer_user_id = ? OR reviewed_by_user_id = ? OR completed_by_user_id = ? LIMIT 1', [userId, userId, userId]);
+  if (apps.length > 0) return true;
+  const [movements] = await query('SELECT 1 FROM stock_movements WHERE performed_by_user_id = ? LIMIT 1', [userId]);
+  if (movements.length > 0) return true;
+  const [requests] = await query('SELECT 1 FROM inter_branch_requests WHERE requested_by_user_id = ? OR approved_by_user_id = ? OR dispatched_by_user_id = ? OR received_by_user_id = ? OR rejected_by_user_id = ? LIMIT 1', [userId, userId, userId, userId, userId]);
+  if (requests.length > 0) return true;
+  return false;
+};
+
+export const deleteUserById = async (userId) => {
+  await query('DELETE FROM notifications WHERE user_id = ?', [userId]);
+  await query('DELETE FROM verification_codes WHERE user_id = ?', [userId]);
+  const [result] = await query('DELETE FROM users WHERE id = ?', [userId]);
+  return result.affectedRows > 0;
+};
+
 export default {
   findUserByEmail,
   findUserById,
@@ -182,4 +199,6 @@ export default {
   findActiveVerificationCodes,
   invalidateUserVerificationCodes,
   markVerificationCodeConsumed,
+  hasUserActivity,
+  deleteUserById,
 };

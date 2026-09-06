@@ -7,6 +7,8 @@ import reportService from '../../services/reportService.js';
 import { useAuth } from '../../hooks/useAuth.js';
 import OperationalWarnings from '../../components/OperationalWarnings.jsx';
 import SensitiveActionConfirmModal from '../../components/SensitiveActionConfirmModal.jsx';
+import PasswordInput from '../../components/PasswordInput.jsx';
+import ErrorModal from '../../components/ErrorModal.jsx';
 
 const safePercent = (value, total) => total > 0 ? Math.min(100, Math.round((value / total) * 100)) : 0;
 
@@ -248,14 +250,13 @@ export function AdminDashboard() {
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>Initial Password</label>
-              <input
-                type="password"
+              <PasswordInput
                 required
                 minLength={6}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 placeholder="Temporary password"
-                style={{ width: '100%', padding: '0.55rem', background: 'var(--color-bg-main)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', color: 'var(--color-text-primary)', fontSize: '0.85rem' }}
+                inputStyle={{ width: '100%', padding: '0.55rem', background: 'var(--color-bg-main)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', color: 'var(--color-text-primary)', fontSize: '0.85rem' }}
                 id="input-staff-password"
               />
             </div>

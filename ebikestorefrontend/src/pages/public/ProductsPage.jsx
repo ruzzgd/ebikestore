@@ -3,6 +3,7 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { Search, Tag, CarFront, Package, ArrowRight, RefreshCw } from 'lucide-react';
 import productService from '../../services/productService.js';
 import categoryService from '../../services/categoryService.js';
+import ErrorModal from '../../components/ErrorModal.jsx';
 
 export function ProductsPage() {
   const location = useLocation();
@@ -61,6 +62,17 @@ export function ProductsPage() {
   };
 
   const availabilityLabels = { available: 'Available', limited_stock: 'Limited Stock', out_of_stock: 'Out of Stock' };
+
+  const getStockStatus = (prod) => {
+    const stock = Number(prod.total_stock ?? 0);
+    if (stock >= 10) {
+      return { label: `Full Stock (${stock} units)`, className: 'available' };
+    }
+    if (stock > 0) {
+      return { label: `Low Stock (${stock} unit${stock === 1 ? '' : 's'})`, className: 'limited_stock' };
+    }
+    return { label: 'Out of Stock (0 units)', className: 'out_of_stock' };
+  };
 
   return (
     <div className="container product-catalog-page" style={{ paddingBottom: '4rem' }}>
@@ -170,9 +182,14 @@ export function ProductsPage() {
                 </p>
 
                 <div style={{ marginBottom: '1rem' }}>
-                  <span className={`availability-badge ${prod.availability}`}>
-                    {availabilityLabels[prod.availability] || 'Out of Stock'}
-                  </span>
+                  {(() => {
+                    const status = getStockStatus(prod);
+                    return (
+                      <span className={`availability-badge ${status.className}`}>
+                        {status.label}
+                      </span>
+                    );
+                  })()}
                 </div>
 
                 {/* Price & Action */}
@@ -195,6 +212,7 @@ export function ProductsPage() {
           })}
         </div>
       )}
+      <ErrorModal isOpen={Boolean(error)} message={error} onClose={() => setError('')} />
     </div>
   );
 }

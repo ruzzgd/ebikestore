@@ -4,6 +4,12 @@ export const listProducts = async ({ activeOnly = false, categoryId = null, sear
   let sql = `
     SELECT p.id, p.category_id, p.sku, p.name, p.description, p.unit_price, p.image_key, p.is_active, p.created_at, p.updated_at,
            c.name AS category_name,
+           COALESCE((
+             SELECT SUM(i.quantity)
+             FROM inventory i
+             INNER JOIN locations l ON l.id = i.location_id AND l.is_active = true
+             WHERE i.product_id = p.id AND i.is_archived = false
+           ), 0) AS total_stock,
            CASE
              WHEN EXISTS (
                SELECT 1 FROM inventory i
@@ -51,6 +57,12 @@ export const findProductById = async (id) => {
   const [rows] = await query(
     `SELECT p.id, p.category_id, p.sku, p.name, p.description, p.unit_price, p.image_key, p.is_active, p.created_at, p.updated_at,
             c.name AS category_name,
+            COALESCE((
+              SELECT SUM(i.quantity)
+              FROM inventory i
+              INNER JOIN locations l ON l.id = i.location_id AND l.is_active = true
+              WHERE i.product_id = p.id AND i.is_archived = false
+            ), 0) AS total_stock,
             CASE
               WHEN EXISTS (
                 SELECT 1 FROM inventory i
