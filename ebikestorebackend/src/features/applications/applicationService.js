@@ -7,7 +7,7 @@ import userRepository from '../users/userRepository.js';
 import productRepository from '../products/productRepository.js';
 import locationRepository from '../locations/locationRepository.js';
 import { createForUsers, getAdminIds, getLocationStaffIds, getRecipientsForLocation } from '../notifications/notificationService.js';
-import { sendEmail } from '../../providers/resendProvider.js';
+import { sendEmail } from '../../providers/brevoProvider.js';
 import { verifyCurrentPassword } from '../auth/authService.js';
 import { BadRequestError, ConflictError, ForbiddenError, NotFoundError, UnauthorizedError } from '../../utils/errors.js';
 

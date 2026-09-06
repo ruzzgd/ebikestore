@@ -91,8 +91,9 @@ services:
       MINIO_BUCKET: ${MINIO_BUCKET:-ebikestore-products}
       MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
 
-      RESEND_API_KEY: ${RESEND_API_KEY:-}
-      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-onboarding@resend.dev}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      BREVO_FROM_EMAIL: ${BREVO_FROM_EMAIL:-noreply@fideloebike.store}
+      BREVO_FROM_NAME: ${BREVO_FROM_NAME:-Fidelo E-Bike Store}
 
       ADMIN_NAME: ${ADMIN_NAME:-System Administrator}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@gmail.com}

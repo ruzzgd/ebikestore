@@ -14,7 +14,7 @@ This folder contains the maintained system documentation and regenerated diagram
 
 ## System summary
 
-Fidelo E-Bike Store is a role-based inventory management and customer application system. A React 18 single-page application provides public, customer, branch staff, warehouse staff, and administrator workflows. An Express backend applies JWT authentication, CSRF protection, role and location rules, exposes modular domain APIs, persists records in MySQL through parameterized repository queries, stores product and profile images in MinIO, and uses Resend for account email flows.
+Fidelo E-Bike Store is a role-based inventory management and customer application system. A React 18 single-page application provides public, customer, branch staff, warehouse staff, and administrator workflows. An Express backend applies JWT authentication, CSRF protection, role and location rules, exposes modular domain APIs, persists records in MySQL through parameterized repository queries, stores product and profile images in MinIO, and uses Brevo for account email flows.
 
 The main inventory flow records stock by product and location, preserves every quantity change in a movement ledger, and coordinates inter-branch requests from approval through dispatch and receipt. Customers can browse the catalog and submit product applications for staff review, while notifications, reports, and authentication audit logs support day-to-day oversight.
 

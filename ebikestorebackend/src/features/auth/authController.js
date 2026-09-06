@@ -17,10 +17,12 @@ export const avatarUploadMiddleware = avatarUpload.single('avatar');
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: config.env === 'production',
+  secure: config.jwt.cookieSecure,
   sameSite: 'lax',
   maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  ...(config.jwt.cookieDomain ? { domain: config.jwt.cookieDomain } : {}),
 };
+
 
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
@@ -143,9 +145,11 @@ export const logout = asyncHandler(async (req, res) => {
 
   res.clearCookie(config.jwt.cookieName, {
     httpOnly: true,
-    secure: config.env === 'production',
+    secure: config.jwt.cookieSecure,
     sameSite: 'lax',
+    ...(config.jwt.cookieDomain ? { domain: config.jwt.cookieDomain } : {}),
   });
+
 
   res.status(200).json({
     status: 'success',

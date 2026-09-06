@@ -25,13 +25,23 @@ const config = Object.freeze({
     secret: process.env.JWT_SECRET || 'ebikestore_staging_jwt_secret_key_2026',
     expiresIn: process.env.JWT_EXPIRE || '24h',
     cookieName: 'ebikestore_token',
+    cookieDomain: process.env.AUTH_COOKIE_DOMAIN || undefined,
+    cookieSecure: process.env.AUTH_COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production',
   }),
   cors: Object.freeze({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: (process.env.CORS_ORIGIN || 'http://localhost:3000')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+  }),
+  brevo: Object.freeze({
+    apiKey: process.env.BREVO_API_KEY || process.env.RESEND_API_KEY || '',
+    fromEmail: process.env.BREVO_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'noreply@fideloebike.store',
+    fromName: process.env.BREVO_FROM_NAME || process.env.RESEND_FROM_NAME || 'Fidelo E-Bike Store',
   }),
   resend: Object.freeze({
-    apiKey: process.env.RESEND_API_KEY || '',
-    fromEmail: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+    apiKey: process.env.BREVO_API_KEY || process.env.RESEND_API_KEY || '',
+    fromEmail: process.env.BREVO_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'noreply@fideloebike.store',
   }),
   adminSeed: Object.freeze({
     name: process.env.ADMIN_NAME || 'System Administrator',
@@ -41,6 +51,7 @@ const config = Object.freeze({
   minio: Object.freeze({
     endPoint: process.env.MINIO_ENDPOINT || 'localhost',
     port: parseInt(process.env.MINIO_PORT || '9000', 10),
+    publicUrl: process.env.MINIO_PUBLIC_URL || 'https://cdn.fideloebike.store',
     useSSL: (process.env.MINIO_USE_SSL || 'false') === 'true',
     accessKey: process.env.MINIO_ROOT_USER || 'ebikestore',
     secretKey: process.env.MINIO_ROOT_PASSWORD || 'ebikestore1234',

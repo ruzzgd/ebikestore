@@ -216,7 +216,7 @@ The template contains development defaults that match the credentials documented
 
 Do not change `MYSQL_HOST` or `MINIO_ENDPOINT`: Docker service names are required for container-to-container communication. If you change a host port such as `FRONTEND_PORT`, also update `CORS_ORIGIN`; if you change `BACKEND_PORT`, update `VITE_API_BASE_URL` and rebuild the frontend.
 
-Real email delivery requires a valid `RESEND_API_KEY` and approved sender address. When no usable key is configured, local verification and password-reset codes are printed in the backend logs instead.
+Real email delivery requires a valid `BREVO_API_KEY` and approved sender address. When no usable key is configured, local verification and password-reset codes are printed in the backend logs instead.
 
 ### 4. Build and start Fidelo
 
@@ -345,7 +345,7 @@ docker compose exec frontend sh -c "cd /app && test -f dist/index.html"
 - **Database:** MySQL 8 through `mysql2/promise` parameterized queries
 - **Database administration:** phpMyAdmin
 - **Object storage:** MinIO
-- **Email:** Resend with a development log fallback
+- **Email:** Brevo with a development log fallback
 - **Local orchestration:** Docker Compose
 
 ```text

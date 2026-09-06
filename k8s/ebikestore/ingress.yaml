@@ -10,10 +10,21 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - ebikestore.ruzzgd.dev
+        - fideloebike.store
+        - www.fideloebike.store
       secretName: ebikestore-tls
   rules:
-    - host: ebikestore.ruzzgd.dev
+    - host: fideloebike.store
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
+    - host: www.fideloebike.store
       http:
         paths:
           - path: /
@@ -40,10 +51,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - api-ebikestore.ruzzgd.dev
+        - api.fideloebike.store
       secretName: ebikestore-api-tls
   rules:
-    - host: api-ebikestore.ruzzgd.dev
+    - host: api.fideloebike.store
       http:
         paths:
           - path: /
@@ -53,3 +64,32 @@ spec:
                 name: backend
                 port:
                   number: 5000
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: media
+  namespace: ebikestore
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "6m"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - cdn.fideloebike.store
+      secretName: ebikestore-cdn-tls
+  rules:
+    - host: cdn.fideloebike.store
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: minio
+                port:
+                  number: 9000
+

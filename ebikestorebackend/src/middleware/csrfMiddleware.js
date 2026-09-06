@@ -13,8 +13,10 @@ const {
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
-    secure: config.env === 'production',
+    secure: config.jwt.cookieSecure,
+    ...(config.jwt.cookieDomain ? { domain: config.jwt.cookieDomain } : {}),
   },
+
   size: 64,
   ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
   getTokenFromRequest: (req) => req.headers['x-csrf-token'],

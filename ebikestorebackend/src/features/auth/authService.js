@@ -2,7 +2,7 @@ import userRepository from '../users/userRepository.js';
 import { hashPassword, comparePassword, generateVerificationCode } from '../../utils/crypto.js';
 import { signToken } from '../../utils/jwt.js';
 import { BadRequestError, UnauthorizedError, ConflictError, NotFoundError, AppError } from '../../utils/errors.js';
-import { sendPasswordChangeCodeEmail, sendPasswordResetEmail, sendVerificationEmail } from '../../providers/resendProvider.js';
+import { sendPasswordChangeCodeEmail, sendPasswordResetEmail, sendVerificationEmail } from '../../providers/brevoProvider.js';
 import { deleteImage, uploadImage } from '../../providers/minioProvider.js';
 
 export const assertEmailDeliverySucceeded = (emailResult, message) => {
@@ -58,7 +58,7 @@ export const registerCustomer = async ({ name, email, password }) => {
     expiresAt,
   });
 
-  // Send verification email via Resend provider (non-blocking failure behavior)
+  // Send verification email via Brevo provider (non-blocking failure behavior)
   const emailResult = await sendVerificationEmail({
     email: cleanEmail,
     code,

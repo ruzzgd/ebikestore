@@ -37,8 +37,9 @@ jobs:
           provenance: false
           sbom: false
           build-args: |
-            VITE_API_BASE_URL=https://api-ebikestore.ruzzgd.dev/api/v1
+            VITE_API_BASE_URL=https://api.fideloebike.store/api/v1
             VITE_INACTIVITY_TIMEOUT_MINUTES=30
+
           tags: |
             ghcr.io/${{ github.repository_owner }}/ebikestore/frontend:latest
             ghcr.io/${{ github.repository_owner }}/ebikestore/frontend:${{ github.sha }}
