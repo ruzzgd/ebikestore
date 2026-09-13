@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Archive, ArchiveRestore, ArrowDownCircle, ArrowUpCircle, History, Package, RefreshCw, ShoppingBag } from 'lucide-react';
+import { AlertTriangle, Archive, ArchiveRestore, ArrowDownCircle, ArrowUpCircle, Edit2, History, Package, RefreshCw, ShoppingBag, X } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth.js';
 import inventoryService from '../../services/inventoryService.js';
 import stockMovementService from '../../services/stockMovementService.js';
@@ -28,6 +28,19 @@ export function InventoryPage() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Edit Modal State
+  const [editingItem, setEditingItem] = useState(null);
+  const [editForm, setEditForm] = useState({
+    threshold: 0,
+    productName: '',
+    sku: '',
+    unitPrice: '',
+    adjustType: 'none',
+    adjustQuantity: '',
+    adjustNote: '',
+  });
+  const [editSaving, setEditSaving] = useState(false);
 
   // Pagination states (10 items per page limit)
   const [inventoryPage, setInventoryPage] = useState(1);
@@ -107,6 +120,70 @@ export function InventoryPage() {
       await loadData({ preserveMessage: true });
     } catch (error) {
       setErrorMessage(error.message || 'Failed to update threshold');
+    }
+  };
+
+  const openEditModal = (item) => {
+    setEditingItem(item);
+    setEditForm({
+      threshold: item.low_stock_threshold ?? 0,
+      productName: item.product_name || '',
+      sku: item.sku || '',
+      unitPrice: item.unit_price || '',
+      adjustType: 'none',
+      adjustQuantity: '',
+      adjustNote: '',
+    });
+  };
+
+  const closeEditModal = () => {
+    setEditingItem(null);
+    setEditSaving(false);
+  };
+
+  const saveEditModal = async (e) => {
+    e.preventDefault();
+    if (!editingItem) return;
+    setEditSaving(true);
+    try {
+      // 1. Update threshold if changed
+      if (Number(editForm.threshold) !== Number(editingItem.low_stock_threshold)) {
+        await inventoryService.updateThreshold(editingItem.id, Number(editForm.threshold));
+      }
+
+      // 2. Update product if admin and changed
+      if (isAdmin) {
+        const prodChanges = {};
+        if (editForm.productName && editForm.productName !== editingItem.product_name) prodChanges.name = editForm.productName;
+        if (editForm.sku && editForm.sku !== editingItem.sku) prodChanges.sku = editForm.sku;
+        if (editForm.unitPrice !== '' && Number(editForm.unitPrice) !== Number(editingItem.unit_price)) prodChanges.unitPrice = Number(editForm.unitPrice);
+        if (Object.keys(prodChanges).length > 0) {
+          await productService.updateProduct(editingItem.product_id, prodChanges);
+        }
+      }
+
+      // 3. Stock adjustment if requested
+      if (editForm.adjustType !== 'none' && Number(editForm.adjustQuantity) > 0) {
+        const payload = {
+          productId: editingItem.product_id,
+          locationId: editingItem.location_id,
+          quantity: Number(editForm.adjustQuantity),
+          note: editForm.adjustNote || 'Manual inventory adjustment',
+        };
+        if (editForm.adjustType === 'increase') {
+          await inventoryService.stockIn(payload);
+        } else if (editForm.adjustType === 'decrease') {
+          await inventoryService.stockOut(payload);
+        }
+      }
+
+      setMessage({ type: 'success', text: `Inventory item '${editingItem.product_name}' updated successfully.` });
+      closeEditModal();
+      await loadData({ preserveMessage: true });
+    } catch (err) {
+      setErrorMessage(err.message || 'Failed to update inventory');
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -216,14 +293,26 @@ export function InventoryPage() {
                             <button onClick={() => saveThreshold(item)}>Save threshold</button>
                           </div>
                         )}
-                        <button
-                          className="btn-refresh"
-                          onClick={() => toggleArchive(item)}
-                          style={{ marginTop: '0.5rem', width: '100%', justifyContent: 'center' }}
-                        >
-                          {item.is_archived ? <ArchiveRestore size={15} /> : <Archive size={15} />}
-                          {item.is_archived ? 'Restore to Active' : 'Move to Archive'}
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem' }}>
+                          <button
+                            type="button"
+                            className="btn-refresh primary"
+                            onClick={() => openEditModal(item)}
+                            style={{ flex: 1, justifyContent: 'center' }}
+                          >
+                            <Edit2 size={14} /> Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-refresh"
+                            onClick={() => toggleArchive(item)}
+                            style={{ flex: 1, justifyContent: 'center' }}
+                            title={item.is_archived ? 'Restore to Active' : 'Move to Archive'}
+                          >
+                            {item.is_archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
+                            {item.is_archived ? 'Restore' : 'Archive'}
+                          </button>
+                        </div>
                       </div>
                     </article>
                   ))}
@@ -263,14 +352,24 @@ export function InventoryPage() {
                             </div>
                           </td>
                           <td>
-                            <button
-                              className="btn-refresh"
-                              onClick={() => toggleArchive(item)}
-                              title={item.is_archived ? 'Restore' : 'Archive'}
-                            >
-                              {item.is_archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
-                              {item.is_archived ? 'Restore' : 'Archive'}
-                            </button>
+                            <div style={{ display: 'flex', gap: '0.35rem' }}>
+                              <button
+                                type="button"
+                                className="btn-refresh primary"
+                                onClick={() => openEditModal(item)}
+                                title="Edit"
+                              >
+                                <Edit2 size={14} /> Edit
+                              </button>
+                              <button
+                                className="btn-refresh"
+                                onClick={() => toggleArchive(item)}
+                                title={item.is_archived ? 'Restore' : 'Archive'}
+                              >
+                                {item.is_archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
+                                {item.is_archived ? 'Restore' : 'Archive'}
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -389,6 +488,188 @@ export function InventoryPage() {
           onPageChange={setMovementPage}
         />
       </section>
+
+      {/* Edit Inventory Modal */}
+      {editingItem && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(3px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeEditModal();
+          }}
+        >
+          <div
+            className="card"
+            style={{
+              width: '100%',
+              maxWidth: '520px',
+              background: '#ffffff',
+              borderRadius: '12px',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+              padding: '1.5rem',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#0f172a' }}>
+                  Edit Inventory Record
+                </h3>
+                <small style={{ color: '#64748b' }}>
+                  {editingItem.product_name} · {editingItem.location_name}
+                </small>
+              </div>
+              <button
+                type="button"
+                onClick={closeEditModal}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '4px' }}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={saveEditModal} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', gap: '1rem', padding: '0.75rem', background: 'var(--color-bg-card-hover)', borderRadius: 'var(--radius-md)' }}>
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Current Stock</span>
+                  <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#0f172a' }}>{editingItem.quantity} unit(s)</div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Location</span>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#0f172a' }}>{editingItem.location_name}</div>
+                </div>
+              </div>
+
+              {isAdmin && (
+                <>
+                  <label>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>Product Name</span>
+                    <input
+                      style={inputStyle}
+                      value={editForm.productName}
+                      onChange={(e) => setEditForm({ ...editForm, productName: e.target.value })}
+                      required
+                    />
+                  </label>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <label>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>SKU</span>
+                      <input
+                        style={inputStyle}
+                        value={editForm.sku}
+                        onChange={(e) => setEditForm({ ...editForm, sku: e.target.value })}
+                        required
+                      />
+                    </label>
+                    <label>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>Unit Price (₱)</span>
+                      <input
+                        style={inputStyle}
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={editForm.unitPrice}
+                        onChange={(e) => setEditForm({ ...editForm, unitPrice: e.target.value })}
+                      />
+                    </label>
+                  </div>
+                </>
+              )}
+
+              <label>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>
+                  Low-Stock Alert Threshold
+                </span>
+                <input
+                  style={inputStyle}
+                  type="number"
+                  min="0"
+                  value={editForm.threshold}
+                  onChange={(e) => setEditForm({ ...editForm, threshold: e.target.value })}
+                  required
+                />
+                <small style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '0.2rem', display: 'block' }}>
+                  Alerts trigger when inventory falls to or below this amount.
+                </small>
+              </label>
+
+              <fieldset style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '0.75rem' }}>
+                <legend style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', padding: '0 0.4rem' }}>
+                  Stock Adjustment (Optional)
+                </legend>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <label>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Action</span>
+                    <select
+                      style={inputStyle}
+                      value={editForm.adjustType}
+                      onChange={(e) => setEditForm({ ...editForm, adjustType: e.target.value })}
+                    >
+                      <option value="none">No adjustment</option>
+                      <option value="increase">Stock In (+)</option>
+                      <option value="decrease">Stock Out (-)</option>
+                    </select>
+                  </label>
+                  {editForm.adjustType !== 'none' && (
+                    <label>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Quantity</span>
+                      <input
+                        style={inputStyle}
+                        type="number"
+                        min="1"
+                        placeholder="Qty"
+                        value={editForm.adjustQuantity}
+                        onChange={(e) => setEditForm({ ...editForm, adjustQuantity: e.target.value })}
+                      />
+                    </label>
+                  )}
+                </div>
+                {editForm.adjustType !== 'none' && (
+                  <label>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Adjustment Note / Reason</span>
+                    <input
+                      style={inputStyle}
+                      placeholder="e.g. Discrepancy recount, damaged unit, etc."
+                      value={editForm.adjustNote}
+                      onChange={(e) => setEditForm({ ...editForm, adjustNote: e.target.value })}
+                    />
+                  </label>
+                )}
+              </fieldset>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  className="btn-refresh"
+                  onClick={closeEditModal}
+                  disabled={editSaving}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-refresh primary"
+                  disabled={editSaving}
+                >
+                  {editSaving ? 'Saving…' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <ErrorModal
         isOpen={Boolean(errorMessage)}

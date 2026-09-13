@@ -56,6 +56,17 @@ export const markAllNotificationsRead = async (authUser) => {
   return notificationRepository.markAllRead(actor.id);
 };
 
+export const deleteNotification = async (authUser, notificationIdValue) => {
+  const actor = await getActor(authUser);
+  const affected = await notificationRepository.deleteNotification(actor.id, parseId(notificationIdValue, 'notificationId'));
+  if (!affected) throw new NotFoundError('Notification not found');
+};
+
+export const deleteAllReadNotifications = async (authUser) => {
+  const actor = await getActor(authUser);
+  return notificationRepository.deleteAllRead(actor.id);
+};
+
 export const shouldActivateLowStockAlert = ({ alertActive, quantityAfter, threshold }) => !alertActive && quantityAfter <= threshold;
 export const shouldClearLowStockAlert = ({ alertActive, quantityAfter, threshold }) => alertActive && quantityAfter > threshold;
 
@@ -76,4 +87,4 @@ export const syncLowStockAlert = async (connection, inventoryId, quantityAfter) 
   }
 };
 
-export default { createForUsers, getAdminIds, getLocationStaffIds, getRecipientsForLocation, listNotifications, getUnreadCount, markNotificationRead, markAllNotificationsRead, syncLowStockAlert };
+export default { createForUsers, getAdminIds, getLocationStaffIds, getRecipientsForLocation, listNotifications, getUnreadCount, markNotificationRead, markAllNotificationsRead, deleteNotification, deleteAllReadNotifications, syncLowStockAlert };

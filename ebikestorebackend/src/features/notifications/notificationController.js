@@ -23,4 +23,14 @@ export const markAllRead = asyncHandler(async (req, res) => {
   res.status(200).json({ status: 'success', data: { updatedCount } });
 });
 
-export default { listNotifications, unreadCount, markRead, markAllRead };
+export const deleteNotification = asyncHandler(async (req, res) => {
+  await notificationService.deleteNotification(req.user, req.params.id);
+  res.status(200).json({ status: 'success', message: 'Notification deleted' });
+});
+
+export const deleteAllRead = asyncHandler(async (req, res) => {
+  const deletedCount = await notificationService.deleteAllReadNotifications(req.user);
+  res.status(200).json({ status: 'success', data: { deletedCount } });
+});
+
+export default { listNotifications, unreadCount, markRead, markAllRead, deleteNotification, deleteAllRead };

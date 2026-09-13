@@ -34,17 +34,47 @@ export function ApplicationFormPage() {
   const { user } = useAuth();
   const [product, setProduct] = useState(null);
   const [locations, setLocations] = useState([]);
-  const [phoneLocal, setPhoneLocal] = useState('');
+  const initialPhone = user?.contact_number ? user.contact_number.replace(/\D/g, '').slice(-10) : '';
+  const [phoneLocal, setPhoneLocal] = useState(initialPhone);
   const [form, setForm] = useState({ 
-    locationId: '', customerName: user?.name || '', contactNumber: '', address: '', quantity: 1, purpose: '', notes: '',
-    birth_date: '', id_type: '', id_number: '', id_expiration_date: '',
-    uses_barangay_clearance: false, barangay_clearance_reference: '', renewal_receipt_present: false,
-    guardian_name: '', guardian_id_type: '', guardian_id_number: ''
+    locationId: '',
+    customerName: user?.name || '',
+    contactNumber: '',
+    address: user?.address || '',
+    quantity: 1,
+    purpose: '',
+    notes: '',
+    birth_date: user?.birth_date ? user.birth_date.split('T')[0] : '',
+    id_type: '',
+    id_number: '',
+    id_expiration_date: '',
+    uses_barangay_clearance: false,
+    barangay_clearance_reference: '',
+    renewal_receipt_present: false,
+    guardian_name: '',
+    guardian_id_type: '',
+    guardian_id_number: ''
   });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(null);
+
+  // Auto-populate from user profile if updated or loaded asynchronously
+  useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        ...prev,
+        customerName: prev.customerName || user.name || '',
+        address: prev.address || user.address || '',
+        birth_date: prev.birth_date || (user.birth_date ? user.birth_date.split('T')[0] : ''),
+      }));
+      if (!phoneLocal && user.contact_number) {
+        const clean = user.contact_number.replace(/\D/g, '');
+        setPhoneLocal(clean.slice(-10));
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     const load = async () => {

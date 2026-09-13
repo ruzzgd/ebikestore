@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Tag, Plus, Edit2, CheckCircle, XCircle, ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
 import categoryService from '../../services/categoryService.js';
+import Pagination from '../../components/Pagination.jsx';
 
 export function AdminCategoriesPage() {
   const [categories, setCategories] = useState([]);
@@ -9,6 +10,8 @@ export function AdminCategoriesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const [formData, setFormData] = useState({ id: null, name: '', description: '' });
   const [isEditing, setIsEditing] = useState(false);
@@ -152,28 +155,36 @@ export function AdminCategoriesPage() {
           {loading ? (
             <p style={{ marginTop: '1rem', color: 'var(--color-text-muted)' }}>Loading categories...</p>
           ) : (
-            <div style={{ marginTop: '1rem' }}>
-              {categories.map((cat) => (
-                <div key={cat.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0', borderBottom: '1px solid var(--color-border)' }}>
-                  <div>
-                    <div style={{ fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span>{cat.name}</span>
-                      {!cat.is_active && <span className="tech-tag" style={{ background: 'rgba(239,68,68,0.2)', color: '#fca5a5' }}>Inactive</span>}
+            <>
+              <div style={{ marginTop: '1rem' }}>
+                {paginatedCategories.map((cat) => (
+                  <div key={cat.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0', borderBottom: '1px solid var(--color-border)' }}>
+                    <div>
+                      <div style={{ fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>{cat.name}</span>
+                        {!cat.is_active && <span className="tech-tag" style={{ background: 'rgba(239,68,68,0.2)', color: '#fca5a5' }}>Inactive</span>}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{cat.description || 'No description'} · {Number(cat.active_product_count || 0)} active product{Number(cat.active_product_count || 0) === 1 ? '' : 's'}</div>
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{cat.description || 'No description'} · {Number(cat.active_product_count || 0)} active product{Number(cat.active_product_count || 0) === 1 ? '' : 's'}</div>
-                  </div>
 
-                  <div style={{ display: 'flex', gap: '0.4rem' }}>
-                    <button onClick={() => handleEdit(cat)} className="btn-refresh" title="Edit Category">
-                      <Edit2 size={14} />
-                    </button>
-                    <button onClick={() => handleToggleActive(cat.id, cat.is_active)} className="btn-refresh" title={cat.is_active ? 'Deactivate' : 'Activate'}>
-                      {cat.is_active ? <XCircle size={14} color="#ef4444" /> : <CheckCircle size={14} color="#10b981" />}
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                      <button onClick={() => handleEdit(cat)} className="btn-refresh" title="Edit Category">
+                        <Edit2 size={14} />
+                      </button>
+                      <button onClick={() => handleToggleActive(cat.id, cat.is_active)} className="btn-refresh" title={cat.is_active ? 'Deactivate' : 'Activate'}>
+                        {cat.is_active ? <XCircle size={14} color="#ef4444" /> : <CheckCircle size={14} color="#10b981" />}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+              <Pagination
+                currentPage={page}
+                totalItems={categories.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={setPage}
+              />
+            </>
           )}
         </div>
       </div>

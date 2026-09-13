@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ClipboardList, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import applicationService from '../../services/applicationService.js';
 import ErrorModal from '../../components/ErrorModal.jsx';
+import Pagination from '../../components/Pagination.jsx';
 
 const STATUS_LABELS = {
   submitted: 'Submitted',
@@ -18,6 +19,8 @@ export function MyApplicationsPage() {
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     const load = async () => {
@@ -25,6 +28,7 @@ export function MyApplicationsPage() {
       setError('');
       try {
         setApplications(await applicationService.getMyApplications({ status }));
+        setPage(1);
       } catch (loadError) {
         setError(loadError.message || 'Failed to load applications');
       } finally {
@@ -33,6 +37,11 @@ export function MyApplicationsPage() {
     };
     load();
   }, [status]);
+
+  const paginatedApplications = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return applications.slice(start, start + PAGE_SIZE);
+  }, [applications, page]);
 
   return (
     <div>
@@ -76,7 +85,7 @@ export function MyApplicationsPage() {
                 </tr>
               </thead>
               <tbody>
-                {applications.map((application) => (
+                {paginatedApplications.map((application) => (
                   <tr key={application.id}>
                     <td>
                       <strong>{application.product_name}</strong>
@@ -113,6 +122,12 @@ export function MyApplicationsPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={page}
+            totalItems={applications.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
         </section>
       )}
 

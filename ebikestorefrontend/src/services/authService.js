@@ -72,8 +72,11 @@ export async function getCurrentUser() {
   return response.data?.user;
 }
 
-export async function updateProfile({ name, email }) {
-  const response = await apiClient('/auth/me', { method: 'PATCH', body: { name, email } });
+export async function updateProfile({ name, email, birthDate, contactNumber, address }) {
+  const response = await apiClient('/auth/me', {
+    method: 'PATCH',
+    body: { name, email, birthDate, contactNumber, address },
+  });
   return response.data?.user;
 }
 

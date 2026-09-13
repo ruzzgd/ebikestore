@@ -16,6 +16,13 @@ export async function markAllRead() {
   const response = await apiClient('/notifications/read-all', { method: 'PATCH' });
   return response.data?.updatedCount || 0;
 }
+export async function deleteNotification(id) {
+  await apiClient(`/notifications/${id}`, { method: 'DELETE' });
+}
+export async function deleteAllRead() {
+  const response = await apiClient('/notifications/read/all', { method: 'DELETE' });
+  return response.data?.deletedCount || 0;
+}
 
 export function getNotificationPath(notification) {
   if (notification.reference_type === 'inter_branch_request') return `/transfers/${notification.reference_id}`;
@@ -24,4 +31,4 @@ export function getNotificationPath(notification) {
   return '/notifications';
 }
 
-export default { getNotifications, getUnreadCount, markRead, markAllRead, getNotificationPath };
+export default { getNotifications, getUnreadCount, markRead, markAllRead, deleteNotification, deleteAllRead, getNotificationPath };

@@ -221,6 +221,9 @@ export const login = async ({ email, password }) => {
     id: user.id,
     name: user.name,
     email: user.email,
+    birth_date: user.birth_date,
+    contact_number: user.contact_number,
+    address: user.address,
     avatar_key: user.avatar_key,
     role: user.role,
     location_id: user.location_id,
@@ -279,7 +282,7 @@ export const resetPassword = async ({ email, code, password }) => {
   return { message: 'Password updated successfully. You can now sign in.' };
 };
 
-export const updateProfile = async (userId, { name, email }) => {
+export const updateProfile = async (userId, { name, email, birthDate, contactNumber, address }) => {
   if (!name || !email) throw new BadRequestError('Name and email address are required');
   const cleanName = name.trim();
   const cleanEmail = email.trim().toLowerCase();
@@ -287,7 +290,26 @@ export const updateProfile = async (userId, { name, email }) => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new BadRequestError('Enter a valid email address');
   const existing = await userRepository.findUserByEmail(cleanEmail);
   if (existing && existing.id !== userId) throw new ConflictError('That email address is already in use');
-  await userRepository.updateUserProfile(userId, { name: cleanName, email: cleanEmail });
+
+  let cleanBirthDate = birthDate ? String(birthDate).trim() : null;
+  if (cleanBirthDate) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(cleanBirthDate)) {
+      throw new BadRequestError('Invalid date of birth format. Use YYYY-MM-DD');
+    }
+  } else {
+    cleanBirthDate = null;
+  }
+
+  const cleanContact = contactNumber ? String(contactNumber).trim().slice(0, 50) : null;
+  const cleanAddress = address ? String(address).trim() : null;
+
+  await userRepository.updateUserProfile(userId, {
+    name: cleanName,
+    email: cleanEmail,
+    birthDate: cleanBirthDate,
+    contactNumber: cleanContact,
+    address: cleanAddress,
+  });
   return getCurrentUser(userId);
 };
 

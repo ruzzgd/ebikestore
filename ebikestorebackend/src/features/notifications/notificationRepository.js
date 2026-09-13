@@ -50,6 +50,16 @@ export const markAllRead = async (userId) => {
   return result.affectedRows;
 };
 
+export const deleteNotification = async (userId, notificationId) => {
+  const [result] = await query('DELETE FROM notifications WHERE id = ? AND user_id = ?', [notificationId, userId]);
+  return result.affectedRows;
+};
+
+export const deleteAllRead = async (userId) => {
+  const [result] = await query('DELETE FROM notifications WHERE user_id = ? AND is_read = true', [userId]);
+  return result.affectedRows;
+};
+
 export const findActiveAdminIds = async (connection) => {
   const [rows] = await connection.execute("SELECT id FROM users WHERE role = 'admin' AND is_active = true");
   return rows.map((row) => row.id);
@@ -81,4 +91,4 @@ export const setInventoryAlertActive = async (connection, inventoryId, isActive)
   await connection.execute('UPDATE inventory SET low_stock_alert_active = ? WHERE id = ?', [isActive, inventoryId]);
 };
 
-export default { createNotification, createMany, listForUser, countUnread, markRead, markAllRead, findActiveAdminIds, findActiveStaffIdsAtLocation, findInventoryContext, setInventoryAlertActive };
+export default { createNotification, createMany, listForUser, countUnread, markRead, markAllRead, deleteNotification, deleteAllRead, findActiveAdminIds, findActiveStaffIdsAtLocation, findInventoryContext, setInventoryAlertActive };

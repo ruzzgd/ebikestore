@@ -7,7 +7,7 @@ import { query } from '../../db/connection.js';
  */
 export const findUserByEmail = async (email) => {
   const [rows] = await query(
-    `SELECT u.id, u.name, u.email, u.avatar_key, u.password_hash, u.role, u.location_id, u.is_active, u.is_email_verified, u.created_at, u.updated_at,
+    `SELECT u.id, u.name, u.email, u.birth_date, u.contact_number, u.address, u.avatar_key, u.password_hash, u.role, u.location_id, u.is_active, u.is_email_verified, u.created_at, u.updated_at,
             l.name AS location_name, l.code AS location_code, l.type AS location_type
      FROM users u
      LEFT JOIN locations l ON u.location_id = l.id
@@ -24,7 +24,7 @@ export const findUserByEmail = async (email) => {
  */
 export const findUserById = async (id) => {
   const [rows] = await query(
-    `SELECT u.id, u.name, u.email, u.avatar_key, u.role, u.location_id, u.is_active, u.is_email_verified, u.created_at, u.updated_at,
+    `SELECT u.id, u.name, u.email, u.birth_date, u.contact_number, u.address, u.avatar_key, u.role, u.location_id, u.is_active, u.is_email_verified, u.created_at, u.updated_at,
             l.name AS location_name, l.code AS location_code, l.type AS location_type
      FROM users u
      LEFT JOIN locations l ON u.location_id = l.id
@@ -90,8 +90,13 @@ export const updateUserPassword = async (userId, passwordHash) => {
   await query(`UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [passwordHash, userId]);
 };
 
-export const updateUserProfile = async (userId, { name, email }) => {
-  await query(`UPDATE users SET name = ?, email = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [name, email, userId]);
+export const updateUserProfile = async (userId, { name, email, birthDate = null, contactNumber = null, address = null }) => {
+  await query(
+    `UPDATE users
+     SET name = ?, email = ?, birth_date = ?, contact_number = ?, address = ?, updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+    [name, email, birthDate || null, contactNumber || null, address || null, userId]
+  );
 };
 
 export const updateUserAvatar = async (userId, avatarKey) => {
@@ -107,7 +112,7 @@ export const listUsers = async ({ limit = 50, offset = 0 } = {}) => {
   const safeLimit = Math.max(1, parseInt(limit, 10) || 50);
   const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
   const [rows] = await query(
-    `SELECT u.id, u.name, u.email, u.avatar_key, u.role, u.location_id, u.is_active, u.is_email_verified, u.created_at, u.updated_at,
+    `SELECT u.id, u.name, u.email, u.birth_date, u.contact_number, u.address, u.avatar_key, u.role, u.location_id, u.is_active, u.is_email_verified, u.created_at, u.updated_at,
             l.name AS location_name, l.code AS location_code, l.type AS location_type
      FROM users u
      LEFT JOIN locations l ON u.location_id = l.id

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import Header from '../components/Header.jsx';
 import Footer from '../components/Footer.jsx';
 import DashboardHeader from '../components/DashboardHeader.jsx';
+import NotificationAlertPopup from '../components/NotificationAlertPopup.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 
 const APP_ROUTE_PREFIXES = ['/admin', '/staff', '/warehouse', '/inventory', '/transfers', '/account', '/profile', '/manage', '/applications', '/notifications', '/reports'];
@@ -32,6 +33,7 @@ export function MainLayout({ children }) {
         </div>
       </main>
       {!isApplicationPage && <Footer />}
+      <NotificationAlertPopup />
     </div>
   );
 }

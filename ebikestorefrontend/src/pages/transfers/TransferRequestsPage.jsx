@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth.js';
 import requestService from '../../services/interBranchRequestService.js';
 import locationService from '../../services/locationService.js';
 import productService from '../../services/productService.js';
+import Pagination from '../../components/Pagination.jsx';
 
 const inputStyle = { width: '100%', padding: '.6rem', background: 'var(--color-bg-main)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', color: 'var(--color-text-primary)' };
 const STATUS_LABELS = { pending: 'Pending', approved: 'Approved', rejected: 'Rejected', in_transit: 'In Transit', received: 'Received' };
@@ -23,6 +24,8 @@ export function TransferRequestsPage() {
   const [sourceInventory, setSourceInventory] = useState([]);
   const [feedback, setFeedback] = useState({ type: '', text: '' });
   const [form, setForm] = useState({ sourceLocationId: '', destinationLocationId: '', note: '', requestedDeliveryDate: '', reasonForTransfer: '', items: [{ productId: '', quantityRequested: 1 }] });
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const activeLocations = useMemo(() => locations.filter((location) => location.is_active), [locations]);
   const destinationId = isAdmin ? form.destinationLocationId : user?.location_id;
@@ -78,6 +81,11 @@ export function TransferRequestsPage() {
     finally { setSubmitting(false); }
   };
 
+  const paginatedRequests = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return requests.slice(start, start + PAGE_SIZE);
+  }, [requests, page]);
+
   return (
     <div>
       <div className="inventory-heading"><div><h1>Inter-Branch Transfers</h1><p>Request and trace stock between Fidelo operating locations.</p></div><div className="management-heading-actions"><button className="btn-refresh primary" onClick={() => setFormOpen(true)}><Plus size={15} /> New Unit Request</button><button className="btn-refresh" onClick={loadData}><RefreshCw size={15} /> Refresh</button></div></div>
@@ -110,13 +118,21 @@ export function TransferRequestsPage() {
       </div>}
 
         <section className="card transfer-list-card">
-          <div className="movement-header"><h2><ClipboardList size={21} /> Request History</h2><select style={inputStyle} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="">All statuses</option>{Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
-          {loading ? <p>Loading requests…</p> : requests.length === 0 ? <p className="muted">No requests match this filter.</p> : <div className="transfer-list">{requests.map((request) => (
-            <Link className="transfer-list-row" key={request.id} to={`/transfers/${request.id}`}>
-              <div><strong>{request.request_reference}</strong><span>{request.source_location_name} <ArrowRight size={13} /> {request.destination_location_name}</span><small>{request.item_count} item{Number(request.item_count) === 1 ? '' : 's'}</small></div>
-              <div><span className={`request-status ${request.status}`}>{STATUS_LABELS[request.status]}</span><small>{request.requested_by_name} · {new Date(request.requested_at).toLocaleDateString()}</small></div>
-            </Link>
-          ))}</div>}
+          <div className="movement-header"><h2><ClipboardList size={21} /> Request History</h2><select style={inputStyle} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}><option value="">All statuses</option>{Object.entries(STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+          {loading ? <p>Loading requests…</p> : requests.length === 0 ? <p className="muted">No requests match this filter.</p> : <>
+            <div className="transfer-list">{paginatedRequests.map((request) => (
+              <Link className="transfer-list-row" key={request.id} to={`/transfers/${request.id}`}>
+                <div><strong>{request.request_reference}</strong><span>{request.source_location_name} <ArrowRight size={13} /> {request.destination_location_name}</span><small>{request.item_count} item{Number(request.item_count) === 1 ? '' : 's'}</small></div>
+                <div><span className={`request-status ${request.status}`}>{STATUS_LABELS[request.status]}</span><small>{request.requested_by_name} · {new Date(request.requested_at).toLocaleDateString()}</small></div>
+              </Link>
+            ))}</div>
+            <Pagination
+              currentPage={page}
+              totalItems={requests.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={setPage}
+            />
+          </>}
         </section>
     </div>
   );
