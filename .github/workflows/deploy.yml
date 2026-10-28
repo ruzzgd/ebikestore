@@ -25,6 +25,8 @@ jobs:
       - name: Apply configuration and workloads
         run: |
           set -e
+          # Clean any lingering terminating pods from prior failed runs
+          kubectl get pods -n ebikestore --no-headers 2>/dev/null | grep 'Terminating' | awk '{print $1}' | xargs -r kubectl delete pod -n ebikestore --force --grace-period=0 2>/dev/null || true
           kubectl apply -f k8s/ebikestore/namespace.yaml
           kubectl apply -f k8s/ebikestore/secret.yaml
           kubectl apply -f k8s/ebikestore/configmap.yaml
