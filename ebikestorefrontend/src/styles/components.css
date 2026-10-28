@@ -59,7 +59,7 @@
 .admin-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
 .admin-stat-card { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .85rem; padding: 1.15rem; background: #fff; border: 1px solid var(--color-border); border-radius: 12px; box-shadow: 0 7px 24px rgba(15,23,42,.04); }
 .admin-stat-card > span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; }
-.admin-stat-card.teal > span { color: #0f766e; background: #ccfbf1; } .admin-stat-card.blue > span { color: #1d4ed8; background: #dbeafe; } .admin-stat-card.amber > span { color: #b45309; background: #fef3c7; } .admin-stat-card.green > span { color: #047857; background: #d1fae5; }
+.admin-stat-card.teal > span { color: #0f766e; background: #ccfbf1; } .admin-stat-card.blue > span { color: #1d4ed8; background: #dbeafe; } .admin-stat-card.amber > span { color: #b45309; background: #fef3c7; } .admin-stat-card.green > span { color: #047857; background: #d1fae5; } .admin-stat-card.danger > span, .admin-stat-card.red > span { color: #b91c1c; background: #fee2e2; }
 .admin-stat-card div { display: grid; }
 .admin-stat-card small { color: #64748b; font-size: .72rem; font-weight: 650; text-transform: uppercase; letter-spacing: .025em; }
 .admin-stat-card strong { color: #0f172a; font-size: 1.65rem; line-height: 1.3; }

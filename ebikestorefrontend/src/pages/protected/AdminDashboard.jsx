@@ -210,7 +210,7 @@ export function AdminDashboard() {
       </div>
 
       {overviewStats && <><div className="admin-stat-grid">
-        {[[Package, 'Total inventory', overviewStats.totalInventoryUnits, 'Units across all locations', 'teal'], [CarFront, 'Active products', overviewStats.activeProducts, 'Available catalog entries', 'blue'], [AlertTriangle, 'Low stock', overviewStats.lowStockCount, `${overviewStats.outOfStockCount} currently out of stock`, 'amber'], [CheckCircle2, 'Completed', overviewStats.completedTransactions, 'Transactions in last 30 days', 'green']].map(([Icon, label, value, hint, tone]) => <article className={`admin-stat-card ${tone}`} key={label}><span><Icon size={19} /></span><div><small>{label}</small><strong>{value}</strong><p>{hint}</p></div></article>)}
+        {[[Package, 'Total inventory', overviewStats.totalInventoryUnits, 'Units across all locations', 'teal'], [CarFront, 'Active products', overviewStats.activeProducts, 'Available catalog entries', 'blue'], [AlertTriangle, 'Out of stock', overviewStats.outOfStockCount, `${Math.max(0, (overviewStats.lowStockCount || 0) - (overviewStats.outOfStockCount || 0))} currently low on stock`, 'danger'], [CheckCircle2, 'Completed', overviewStats.completedTransactions, 'Transactions in last 30 days', 'green']].map(([Icon, label, value, hint, tone]) => <article className={`admin-stat-card ${tone}`} key={label}><span><Icon size={19} /></span><div><small>{label}</small><strong>{value}</strong><p>{hint}</p></div></article>)}
       </div><AdminCharts stats={overviewStats} /></>}
 
       <div className="grid-cols-2">
