@@ -131,10 +131,22 @@ export function AdminDashboard() {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    const cleanName = formData.name.trim();
+    if (/\d/.test(cleanName)) {
+      setError('Staff name cannot contain numbers.');
+      return;
+    }
+    const nameRegex = /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s.'-]+$/;
+    if (!nameRegex.test(cleanName) || !/[a-zA-ZÀ-ÿ\u00f1\u00d1]/.test(cleanName)) {
+      setError('Staff name can only contain letters, spaces, hyphens, periods, and apostrophes. Numbers and special characters are not allowed.');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
-      const newStaff = await authService.createStaffAccount(formData);
+      const newStaff = await authService.createStaffAccount({ ...formData, name: cleanName });
       setSuccess(`Staff account '${newStaff.email}' (${newStaff.role}) assigned to ${newStaff.location_name} created successfully!`);
       const defaultBranchLoc = locations.find((l) => l.type === 'branch')?.id || '';
       setFormData({ name: '', email: '', password: '', role: 'branch_staff', locationId: defaultBranchLoc });
@@ -223,20 +235,24 @@ export function AdminDashboard() {
 
           <form onSubmit={handleStaffSubmit} id="form-create-staff">
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>Staff Name</label>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>
+                Staff Name <span style={{ color: '#ef4444' }}>*</span>
+              </label>
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Staff Member Name"
+                placeholder="Staff Member Name (Letters only)"
                 style={{ width: '100%', padding: '0.55rem', background: 'var(--color-bg-main)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', color: 'var(--color-text-primary)', fontSize: '0.85rem' }}
                 id="input-staff-name"
               />
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>Email Address</label>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>
+                Email Address <span style={{ color: '#ef4444' }}>*</span>
+              </label>
               <input
                 type="email"
                 required
@@ -249,7 +265,9 @@ export function AdminDashboard() {
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>Initial Password</label>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>
+                Initial Password <span style={{ color: '#ef4444' }}>*</span>
+              </label>
               <PasswordInput
                 required
                 minLength={6}
@@ -262,7 +280,9 @@ export function AdminDashboard() {
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>Assign Staff Role</label>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>
+                Assign Staff Role <span style={{ color: '#ef4444' }}>*</span>
+              </label>
               <select
                 value={formData.role}
                 onChange={(e) => handleRoleChange(e.target.value)}
@@ -275,7 +295,9 @@ export function AdminDashboard() {
             </div>
 
             <div style={{ marginBottom: '1.25rem' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>Assign Operating Location</label>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>
+                Assign Operating Location <span style={{ color: '#ef4444' }}>*</span>
+              </label>
               <select
                 required
                 value={formData.locationId}

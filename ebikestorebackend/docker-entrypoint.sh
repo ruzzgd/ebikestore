@@ -40,5 +40,5 @@ echo "[STARTUP] Starting API server..."
 if [ "$NODE_ENV" = "development" ]; then
   exec npm run dev
 else
-  exec npm start
+  exec node src/server.js
 fi

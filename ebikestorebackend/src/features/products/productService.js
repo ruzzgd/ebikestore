@@ -21,6 +21,9 @@ export const createProduct = async ({ categoryId, sku, name, description, unitPr
   }
 
   const cleanSku = sku.trim().toUpperCase();
+  if (cleanSku.length > 30) {
+    throw new BadRequestError('SKU cannot exceed 30 characters');
+  }
   const cleanName = name.trim();
 
   // Validate category exists
@@ -60,6 +63,9 @@ export const updateProduct = async (id, { categoryId, sku, name, description, un
   }
 
   const cleanSku = sku ? sku.trim().toUpperCase() : product.sku;
+  if (cleanSku.length > 30) {
+    throw new BadRequestError('SKU cannot exceed 30 characters');
+  }
   if (cleanSku !== product.sku) {
     const existingSku = await productRepository.findProductBySku(cleanSku);
     if (existingSku && existingSku.id !== id) {

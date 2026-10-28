@@ -39,6 +39,8 @@ jobs:
       - name: Restart application deployments
         run: |
           set -e
+          # Clean any lingering terminating pods from prior runs before restarting
+          kubectl get pods -n ebikestore --no-headers 2>/dev/null | grep 'Terminating' | awk '{print $1}' | xargs -r kubectl delete pod -n ebikestore --force --grace-period=0 2>/dev/null || true
           kubectl rollout restart deployment/backend -n ebikestore
           kubectl rollout restart deployment/frontend -n ebikestore
 
@@ -46,13 +48,20 @@ jobs:
         run: |
           set -e
           for deployment in backend frontend; do
+            echo "[DEPLOY] Checking rollout status for deployment/$deployment..."
             if ! kubectl rollout status "deployment/$deployment" \
               -n ebikestore \
-              --timeout=240s; then
-              kubectl get pods -n ebikestore -l "app=$deployment"
-              kubectl describe pods -n ebikestore -l "app=$deployment"
-              kubectl logs -n ebikestore "deployment/$deployment" --tail=100 || true
-              exit 1
+              --timeout=180s; then
+              echo "[DEPLOY WARNING] Rollout timed out, cleaning any stuck terminating pods..."
+              kubectl get pods -n ebikestore --no-headers 2>/dev/null | grep 'Terminating' | awk '{print $1}' | xargs -r kubectl delete pod -n ebikestore --force --grace-period=0 2>/dev/null || true
+              if ! kubectl rollout status "deployment/$deployment" \
+                -n ebikestore \
+                --timeout=60s; then
+                kubectl get pods -n ebikestore -l "app=$deployment"
+                kubectl describe pods -n ebikestore -l "app=$deployment"
+                kubectl logs -n ebikestore "deployment/$deployment" --tail=100 || true
+                exit 1
+              fi
             fi
           done
 

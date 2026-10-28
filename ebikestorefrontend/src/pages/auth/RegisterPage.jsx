@@ -33,6 +33,17 @@ export function RegisterPage() {
     setError('');
     setSuccess('');
 
+    const cleanName = formData.name.trim();
+    if (/\d/.test(cleanName)) {
+      setError('Name cannot contain numbers');
+      return;
+    }
+    const nameRegex = /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s.'-]+$/;
+    if (!nameRegex.test(cleanName) || !/[a-zA-ZÀ-ÿ\u00f1\u00d1]/.test(cleanName)) {
+      setError('Name can only contain letters, spaces, hyphens, periods, and apostrophes. Numbers and special characters are not allowed.');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -41,15 +52,19 @@ export function RegisterPage() {
     setLoading(true);
 
     try {
-      await authService.register({
-        name: formData.name,
+      const response = await authService.register({
+        name: cleanName,
         email: formData.email,
         password: formData.password,
       });
 
       // Move to step 2 for verification
       setStep(2);
-      setSuccess('');
+      if (response?.data?.debugOtp) {
+        setSuccess(`A 6-digit verification code has been sent to ${formData.email}. (Dev Mode OTP: ${response.data.debugOtp})`);
+      } else {
+        setSuccess(`A 6-digit verification code has been sent to ${formData.email}.`);
+      }
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {
@@ -87,7 +102,11 @@ export function RegisterPage() {
 
     try {
       const result = await authService.resendVerification({ email: formData.email.trim() });
-      setSuccess(result.message || 'A new verification code has been sent to your email.');
+      if (result?.data?.debugOtp) {
+        setSuccess(`A new verification code has been sent. (Dev Mode OTP: ${result.data.debugOtp})`);
+      } else {
+        setSuccess(result.message || 'A new verification code has been sent to your email.');
+      }
     } catch (err) {
       setError(err.message || 'Failed to resend verification code.');
     } finally {
@@ -147,7 +166,7 @@ export function RegisterPage() {
             <form onSubmit={handleRegisterSubmit}>
               <div style={{ marginBottom: '1.25rem' }}>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.4rem', color: '#334155' }}>
-                  Full Name
+                  Full Name <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <div style={{ position: 'relative' }}>
                   <User size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
@@ -157,17 +176,18 @@ export function RegisterPage() {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="Full Name"
+                    placeholder="Full Name (Letters only)"
                     style={{ width: '100%', padding: '0.75rem 0.75rem 0.75rem 2.5rem', background: '#f8fafc', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '0.95rem', color: '#0f172a', transition: 'all 0.2s', outline: 'none' }}
                     onFocus={(e) => { e.target.style.borderColor = 'var(--color-brand-primary)'; e.target.style.background = '#ffffff'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.1)'; }}
                     onBlur={(e) => { e.target.style.borderColor = 'var(--color-border)'; e.target.style.background = '#f8fafc'; e.target.style.boxShadow = 'none'; }}
                   />
                 </div>
+                <small style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>Letters only. Special characters and numbers are not allowed.</small>
               </div>
 
               <div style={{ marginBottom: '1.25rem' }}>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.4rem', color: '#334155' }}>
-                  Email Address
+                  Email Address <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
@@ -187,7 +207,7 @@ export function RegisterPage() {
 
               <div style={{ marginBottom: '1.25rem' }}>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.4rem', color: '#334155' }}>
-                  Password
+                  Password <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <PasswordInput
                   name="password"
@@ -210,7 +230,7 @@ export function RegisterPage() {
 
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.4rem', color: '#334155' }}>
-                  Confirm Password
+                  Confirm Password <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <PasswordInput
                   name="confirmPassword"

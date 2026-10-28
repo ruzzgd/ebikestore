@@ -375,6 +375,7 @@ export function AdminProductsPage() {
                   <input
                     type="text"
                     required
+                    maxLength={30}
                     value={formData.sku}
                     onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                     placeholder="e.g. EBK-2026-X1"

@@ -35,6 +35,34 @@ export function ProfilePage() {
 
   const saveProfile = async (event) => {
     event.preventDefault(); setBusy('profile'); setNotice(null);
+
+    const cleanName = profile.name.trim();
+    if (/\d/.test(cleanName)) {
+      setBusy('');
+      return show('error', 'Name cannot contain numbers.');
+    }
+    const nameRegex = /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s.'-]+$/;
+    if (!nameRegex.test(cleanName) || !/[a-zA-ZÀ-ÿ\u00f1\u00d1]/.test(cleanName)) {
+      setBusy('');
+      return show('error', 'Name can only contain letters, spaces, hyphens, periods, and apostrophes. Numbers and special characters are not allowed.');
+    }
+
+    if (profile.contactNumber) {
+      const cleanPhone = profile.contactNumber.trim();
+      const digits = cleanPhone.replace(/\D/g, '');
+      const isValid =
+        (cleanPhone.startsWith('09') && digits.length === 11) ||
+        (cleanPhone.startsWith('+639') && digits.length === 12) ||
+        (cleanPhone.startsWith('+63') && digits.length === 12 && digits.startsWith('639')) ||
+        (digits.length === 10 && digits.startsWith('9')) ||
+        (digits.length === 11 && digits.startsWith('09'));
+
+      if (!isValid) {
+        setBusy('');
+        return show('error', 'Please enter a complete and valid 11-digit mobile number (e.g. 0917 123 4567 or +63 917 123 4567).');
+      }
+    }
+
     try {
       await authService.updateProfile(profile);
       await checkAuth();
@@ -82,8 +110,8 @@ export function ProfilePage() {
       <div className="profile-settings">
         <section className="profile-panel"><div className="profile-panel-heading"><span><UserRound size={20} /></span><div><h2>Personal information</h2><p>This information appears in the workspace and auto-populates transaction applications.</p></div></div>
           <form onSubmit={saveProfile} className="profile-form">
-            <label><span>Full name</span><div><UserRound size={17} /><input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} required minLength={2} maxLength={100} /></div></label>
-            <label><span>Email address</span><div><Mail size={17} /><input type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} required /></div></label>
+            <label><span>Full name <span style={{ color: '#ef4444' }}>*</span></span><div><UserRound size={17} /><input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} required minLength={2} maxLength={100} /></div></label>
+            <label><span>Email address <span style={{ color: '#ef4444' }}>*</span></span><div><Mail size={17} /><input type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} required /></div></label>
             <div className="profile-form-row">
               <label><span>Date of birth</span><div><Calendar size={17} /><input type="date" value={profile.birthDate} onChange={(e) => setProfile({ ...profile, birthDate: e.target.value })} /></div></label>
               <label><span>Contact number</span><div><Phone size={17} /><input type="tel" value={profile.contactNumber} placeholder="e.g. 0917 123 4567 or +63 917 123 4567" onChange={(e) => setProfile({ ...profile, contactNumber: e.target.value })} maxLength={50} /></div></label>

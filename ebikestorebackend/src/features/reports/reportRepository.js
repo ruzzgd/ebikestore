@@ -12,11 +12,16 @@ const getOverviewStats = async ({ locationId, startDate, endDate }) => {
   // Inventory stats
   const invQuery = `
     SELECT 
-      IFNULL(SUM(quantity), 0) as totalInventoryUnits,
-      COUNT(CASE WHEN quantity <= low_stock_threshold THEN 1 END) as lowStockCount,
-      COUNT(CASE WHEN quantity = 0 THEN 1 END) as outOfStockCount
-    FROM inventory 
-    WHERE (? IS NULL OR location_id = ?)
+      IFNULL(SUM(i.quantity), 0) as totalInventoryUnits,
+      COUNT(CASE WHEN i.quantity <= i.low_stock_threshold THEN 1 END) as lowStockCount,
+      COUNT(CASE WHEN i.quantity = 0 THEN 1 END) as outOfStockCount
+    FROM inventory i
+    INNER JOIN products p ON p.id = i.product_id
+    INNER JOIN locations l ON l.id = i.location_id
+    WHERE (? IS NULL OR i.location_id = ?)
+      AND i.is_archived = false
+      AND p.is_active = true
+      AND l.is_active = true
   `;
   promises.push(pool.query(invQuery, [locationId, locationId]).then(([rows]) => ({
     totalInventoryUnits: Number(rows[0].totalInventoryUnits),
@@ -97,6 +102,9 @@ const getInventoryReport = async ({ locationId, categoryId, search, lowStockOnly
     JOIN categories c ON p.category_id = c.id
     JOIN locations l ON i.location_id = l.id
     WHERE 1=1
+      AND i.is_archived = false
+      AND p.is_active = true
+      AND l.is_active = true
   `;
   const params = [];
 

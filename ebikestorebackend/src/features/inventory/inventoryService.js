@@ -71,7 +71,7 @@ export const getInventory = async (authUser, filters = {}) => {
   const actor = await getActor(authUser);
   const locationId = resolveLocationAccess(actor, filters.locationId);
   const productId = filters.productId ? parsePositiveInteger(filters.productId, 'productId') : null;
-  const archived = actor.role === 'admin' && (filters.archived === true || filters.archived === 'true');
+  const archived = filters.archived === true || filters.archived === 'true';
   return inventoryRepository.listInventory({ locationId, productId, search: filters.search || '', lowStockOnly: Boolean(filters.lowStockOnly), archived });
 };
 

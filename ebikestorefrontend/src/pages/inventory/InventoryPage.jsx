@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Archive, ArchiveRestore, ArrowDownCircle, ArrowUpCircle, Edit2, History, Package, RefreshCw, ShoppingBag, X } from 'lucide-react';
+import { AlertTriangle, Archive, ArchiveRestore, ArrowDownCircle, ArrowUpCircle, Edit2, History, Package, RefreshCw, ShoppingBag, X, ImagePlus } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth.js';
 import inventoryService from '../../services/inventoryService.js';
 import stockMovementService from '../../services/stockMovementService.js';
 import productService from '../../services/productService.js';
 import locationService from '../../services/locationService.js';
+import uploadService from '../../services/uploadService.js';
 import Pagination from '../../components/Pagination.jsx';
 import ErrorModal from '../../components/ErrorModal.jsx';
 
@@ -36,11 +37,14 @@ export function InventoryPage() {
     productName: '',
     sku: '',
     unitPrice: '',
+    imageKey: '',
     adjustType: 'none',
     adjustQuantity: '',
     adjustNote: '',
   });
   const [editSaving, setEditSaving] = useState(false);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Pagination states (10 items per page limit)
   const [inventoryPage, setInventoryPage] = useState(1);
@@ -74,6 +78,13 @@ export function InventoryPage() {
   };
 
   useEffect(() => { loadData(); }, [locationFilter, movementType, showArchived]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadData({ preserveMessage: true });
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const submitOperation = async (event) => {
     event.preventDefault();
@@ -130,15 +141,43 @@ export function InventoryPage() {
       productName: item.product_name || '',
       sku: item.sku || '',
       unitPrice: item.unit_price || '',
+      imageKey: item.image_key || '',
       adjustType: 'none',
       adjustQuantity: '',
       adjustNote: '',
     });
+    setImagePreviewUrl(getImageUrl(item.image_key) || '');
   };
 
   const closeEditModal = () => {
     setEditingItem(null);
     setEditSaving(false);
+    setImagePreviewUrl('');
+    setUploadingImage(false);
+  };
+
+  const handleModalImageFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setErrorMessage('Please select a valid JPEG, PNG, or WebP image.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage('Image size must be less than 5MB.');
+      return;
+    }
+    setUploadingImage(true);
+    setErrorMessage('');
+    try {
+      const result = await uploadService.uploadProductImage(file);
+      setEditForm((prev) => ({ ...prev, imageKey: result.imageKey }));
+      setImagePreviewUrl(getImageUrl(result.imageKey));
+    } catch (err) {
+      setErrorMessage(err.message || 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const saveEditModal = async (e) => {
@@ -157,6 +196,7 @@ export function InventoryPage() {
         if (editForm.productName && editForm.productName !== editingItem.product_name) prodChanges.name = editForm.productName;
         if (editForm.sku && editForm.sku !== editingItem.sku) prodChanges.sku = editForm.sku;
         if (editForm.unitPrice !== '' && Number(editForm.unitPrice) !== Number(editingItem.unit_price)) prodChanges.unitPrice = Number(editForm.unitPrice);
+        if (editForm.imageKey !== undefined && editForm.imageKey !== (editingItem.image_key || '')) prodChanges.imageKey = editForm.imageKey;
         if (Object.keys(prodChanges).length > 0) {
           await productService.updateProduct(editingItem.product_id, prodChanges);
         }
@@ -187,11 +227,22 @@ export function InventoryPage() {
     }
   };
 
+  // Filtered inventory based on search term
+  const filteredInventory = useMemo(() => {
+    if (!search.trim()) return inventory;
+    const term = search.toLowerCase().trim();
+    return inventory.filter((item) =>
+      item.product_name?.toLowerCase().includes(term) ||
+      item.sku?.toLowerCase().includes(term) ||
+      item.location_name?.toLowerCase().includes(term)
+    );
+  }, [inventory, search]);
+
   // Paginated data slices
   const paginatedInventory = useMemo(() => {
     const start = (inventoryPage - 1) * PAGE_SIZE;
-    return inventory.slice(start, start + PAGE_SIZE);
-  }, [inventory, inventoryPage]);
+    return filteredInventory.slice(start, start + PAGE_SIZE);
+  }, [filteredInventory, inventoryPage]);
 
   const paginatedMovements = useMemo(() => {
     const start = (movementPage - 1) * PAGE_SIZE;
@@ -246,15 +297,37 @@ export function InventoryPage() {
             </select>
           </label>
         )}
-        <label>
+        <label style={{ flex: 1, minWidth: '220px' }}>
           Search product
-          <input value={search} onChange={(e) => setSearch(e.target.value)} style={inputStyle} placeholder="Name or SKU" />
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setInventoryPage(1);
+              }}
+              style={{ ...inputStyle, paddingRight: search ? '2.2rem' : '0.6rem' }}
+              placeholder="Filter by name, SKU, or location"
+              id="input-inventory-search"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => { setSearch(''); setInventoryPage(1); }}
+                style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}
+                title="Clear search"
+                aria-label="Clear search"
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
         </label>
-        <button className="btn-refresh" onClick={loadData}>Apply filters</button>
+        <button className="btn-refresh" onClick={() => loadData()}>Apply filters</button>
         <div className="inventory-summary">
-          <Package size={18} /> {inventory.length} {showArchived ? 'archived' : 'active'} records
+          <Package size={18} /> {filteredInventory.length} {showArchived ? 'archived' : 'active'} records
           {!showArchived && (
-            <> · <AlertTriangle size={18} /> {inventory.filter((item) => item.is_low_stock).length} low stock</>
+            <> · <AlertTriangle size={18} /> {filteredInventory.filter((item) => item.is_low_stock).length} low stock</>
           )}
         </div>
       </div>
@@ -264,9 +337,11 @@ export function InventoryPage() {
           <h2>{showArchived ? 'Archived Records' : 'Current Stock'}</h2>
           {loading ? (
             <p>Loading inventory…</p>
-          ) : inventory.length === 0 ? (
+          ) : filteredInventory.length === 0 ? (
             <p className="muted">
-              {showArchived
+              {search
+                ? `No products match "${search}". Try clearing the search.`
+                : showArchived
                 ? 'No archived inventory records found.'
                 : 'No stock records are configured for these filters. Use stock-in to establish initial stock.'}
             </p>
@@ -319,7 +394,7 @@ export function InventoryPage() {
                 </div>
                 <Pagination
                   currentPage={inventoryPage}
-                  totalItems={inventory.length}
+                  totalItems={filteredInventory.length}
                   pageSize={PAGE_SIZE}
                   onPageChange={setInventoryPage}
                 />
@@ -378,7 +453,7 @@ export function InventoryPage() {
                 </div>
                 <Pagination
                   currentPage={inventoryPage}
-                  totalItems={inventory.length}
+                  totalItems={filteredInventory.length}
                   pageSize={PAGE_SIZE}
                   onPageChange={setInventoryPage}
                 />
@@ -568,6 +643,7 @@ export function InventoryPage() {
                       <span style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>SKU</span>
                       <input
                         style={inputStyle}
+                        maxLength={30}
                         value={editForm.sku}
                         onChange={(e) => setEditForm({ ...editForm, sku: e.target.value })}
                         required
@@ -583,6 +659,51 @@ export function InventoryPage() {
                         value={editForm.unitPrice}
                         onChange={(e) => setEditForm({ ...editForm, unitPrice: e.target.value })}
                       />
+                    </label>
+                  </div>
+
+                  <div style={{ marginBottom: '0.25rem' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
+                      Product Image
+                    </span>
+                    <input
+                      id="input-inventory-product-image"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleModalImageFileChange}
+                      style={{ display: 'none' }}
+                    />
+                    <label
+                      htmlFor="input-inventory-product-image"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        padding: '0.65rem 0.85rem',
+                        background: 'var(--color-bg-card-hover)',
+                        border: '1px dashed var(--color-border)',
+                        borderRadius: 'var(--radius-md)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {imagePreviewUrl ? (
+                        <img
+                          src={imagePreviewUrl}
+                          alt="Product preview"
+                          style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--color-border)' }}
+                        />
+                      ) : (
+                        <div style={{ width: '48px', height: '48px', borderRadius: '6px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                          <ImagePlus size={22} />
+                        </div>
+                      )}
+                      <div style={{ flex: 1, fontSize: '0.85rem' }}>
+                        <strong style={{ display: 'block', color: 'var(--color-text-primary)' }}>
+                          {imagePreviewUrl ? 'Change product image' : 'Upload product image'}
+                        </strong>
+                        <small style={{ color: 'var(--color-text-secondary)' }}>JPEG, PNG, or WebP (max 5MB)</small>
+                      </div>
+                      {uploadingImage && <RefreshCw size={18} className="spin-icon" />}
                     </label>
                   </div>
                 </>

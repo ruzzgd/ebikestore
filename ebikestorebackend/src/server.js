@@ -9,17 +9,20 @@ const server = app.listen(config.port, () => {
 
 const gracefulShutdown = async (signal) => {
   console.log(`[SERVER] Received ${signal}. Starting graceful shutdown...`);
+  if (typeof server.closeIdleConnections === 'function') {
+    server.closeIdleConnections();
+  }
   server.close(async () => {
     console.log('[SERVER] HTTP server closed.');
     await closePool();
     process.exit(0);
   });
 
-  // Force exit after 10 seconds
+  // Force exit after 5 seconds
   setTimeout(() => {
     console.error('[SERVER] Forced shutdown due to timeout.');
     process.exit(1);
-  }, 10000);
+  }, 5000).unref();
 };
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));

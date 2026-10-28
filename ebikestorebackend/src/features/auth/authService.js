@@ -4,6 +4,8 @@ import { signToken } from '../../utils/jwt.js';
 import { BadRequestError, UnauthorizedError, ConflictError, NotFoundError, AppError } from '../../utils/errors.js';
 import { sendPasswordChangeCodeEmail, sendPasswordResetEmail, sendVerificationEmail } from '../../providers/brevoProvider.js';
 import { deleteImage, uploadImage } from '../../providers/minioProvider.js';
+import { validateFullName, validateEmail, validateContactNumber } from '../../utils/validators.js';
+import config from '../../config/index.js';
 
 export const assertEmailDeliverySucceeded = (emailResult, message) => {
   if (!emailResult?.success) {
@@ -19,7 +21,8 @@ export const registerCustomer = async ({ name, email, password }) => {
     throw new BadRequestError('Name, email, and password are required');
   }
 
-  const cleanEmail = email.trim().toLowerCase();
+  const cleanName = validateFullName(name, 'Full name');
+  const cleanEmail = validateEmail(email, 'Email address');
 
   if (password.length < 6) {
     throw new BadRequestError('Password must be at least 6 characters long');
@@ -36,7 +39,7 @@ export const registerCustomer = async ({ name, email, password }) => {
 
   // Always create customer role for public registration
   const userId = await userRepository.createUser({
-    name: name.trim(),
+    name: cleanName,
     email: cleanEmail,
     passwordHash,
     role: 'customer',
@@ -62,7 +65,7 @@ export const registerCustomer = async ({ name, email, password }) => {
   const emailResult = await sendVerificationEmail({
     email: cleanEmail,
     code,
-    name: name.trim(),
+    name: cleanName,
   });
 
   if (!emailResult.success) {
@@ -76,6 +79,7 @@ export const registerCustomer = async ({ name, email, password }) => {
   return {
     user,
     message: 'Registration successful. A 6-digit verification code has been sent to your email address.',
+    debugOtp: config.env !== 'production' ? code : undefined,
   };
 };
 
@@ -173,6 +177,7 @@ export const resendVerification = async ({ email }) => {
 
   return {
     message: 'A new 6-digit verification code has been sent to your email address.',
+    debugOtp: config.env !== 'production' ? code : undefined,
   };
 };
 
@@ -284,10 +289,8 @@ export const resetPassword = async ({ email, code, password }) => {
 
 export const updateProfile = async (userId, { name, email, birthDate, contactNumber, address }) => {
   if (!name || !email) throw new BadRequestError('Name and email address are required');
-  const cleanName = name.trim();
-  const cleanEmail = email.trim().toLowerCase();
-  if (cleanName.length < 2 || cleanName.length > 100) throw new BadRequestError('Name must be between 2 and 100 characters');
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new BadRequestError('Enter a valid email address');
+  const cleanName = validateFullName(name, 'Full name');
+  const cleanEmail = validateEmail(email, 'Email address');
   const existing = await userRepository.findUserByEmail(cleanEmail);
   if (existing && existing.id !== userId) throw new ConflictError('That email address is already in use');
 
@@ -300,7 +303,7 @@ export const updateProfile = async (userId, { name, email, birthDate, contactNum
     cleanBirthDate = null;
   }
 
-  const cleanContact = contactNumber ? String(contactNumber).trim().slice(0, 50) : null;
+  const cleanContact = validateContactNumber(contactNumber, { required: false });
   const cleanAddress = address ? String(address).trim() : null;
 
   await userRepository.updateUserProfile(userId, {

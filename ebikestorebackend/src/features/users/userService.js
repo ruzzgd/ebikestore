@@ -2,6 +2,7 @@ import userRepository from './userRepository.js';
 import locationRepository from '../locations/locationRepository.js';
 import { comparePassword, hashPassword } from '../../utils/crypto.js';
 import { BadRequestError, ConflictError, NotFoundError, UnauthorizedError } from '../../utils/errors.js';
+import { validateFullName, validateEmail } from '../../utils/validators.js';
 
 /**
  * Admin creation of staff accounts (branch_staff or warehouse_staff)
@@ -10,6 +11,9 @@ export const createStaffAccount = async ({ name, email, password, role, location
   if (!name || !email || !password || !role || !locationId) {
     throw new BadRequestError('Name, email, password, role, and location are required for staff creation');
   }
+
+  const cleanName = validateFullName(name, 'Staff name');
+  const cleanEmail = validateEmail(email, 'Staff email');
 
   const allowedStaffRoles = ['branch_staff', 'warehouse_staff'];
   if (!allowedStaffRoles.includes(role)) {
@@ -30,8 +34,6 @@ export const createStaffAccount = async ({ name, email, password, role, location
     throw new BadRequestError(`Warehouse staff must be assigned to a location of type 'warehouse' (Selected: '${location.name}' [${location.type}])`);
   }
 
-  const cleanEmail = email.trim().toLowerCase();
-
   const existingUser = await userRepository.findUserByEmail(cleanEmail);
   if (existingUser) {
     throw new ConflictError('An account with this email address already exists');
@@ -40,7 +42,7 @@ export const createStaffAccount = async ({ name, email, password, role, location
   const passwordHash = await hashPassword(password);
 
   const userId = await userRepository.createUser({
-    name: name.trim(),
+    name: cleanName,
     email: cleanEmail,
     passwordHash,
     role,

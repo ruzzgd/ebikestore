@@ -108,14 +108,16 @@ export const updateUserAvatar = async (userId, avatarKey) => {
  * @param {object} options
  * @returns {Promise<Array>}
  */
-export const listUsers = async ({ limit = 50, offset = 0 } = {}) => {
+export const listUsers = async ({ limit = 50, offset = 0, includeUnverified = false } = {}) => {
   const safeLimit = Math.max(1, parseInt(limit, 10) || 50);
   const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
+  const whereClause = includeUnverified ? '' : "WHERE (u.role != 'customer' OR u.is_email_verified = true)";
   const [rows] = await query(
     `SELECT u.id, u.name, u.email, u.birth_date, u.contact_number, u.address, u.avatar_key, u.role, u.location_id, u.is_active, u.is_email_verified, u.created_at, u.updated_at,
             l.name AS location_name, l.code AS location_code, l.type AS location_type
      FROM users u
      LEFT JOIN locations l ON u.location_id = l.id
+     ${whereClause}
      ORDER BY u.created_at DESC LIMIT ${safeLimit} OFFSET ${safeOffset}`
   );
   return rows;

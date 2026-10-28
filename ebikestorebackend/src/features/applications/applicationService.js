@@ -10,6 +10,7 @@ import { createForUsers, getAdminIds, getLocationStaffIds, getRecipientsForLocat
 import { sendEmail } from '../../providers/brevoProvider.js';
 import { verifyCurrentPassword } from '../auth/authService.js';
 import { BadRequestError, ConflictError, ForbiddenError, NotFoundError, UnauthorizedError } from '../../utils/errors.js';
+import { validateFullName, validateContactNumber } from '../../utils/validators.js';
 
 export const APPLICATION_STATUSES = Object.freeze(['submitted', 'under_review', 'approved', 'rejected', 'completed', 'cancelled']);
 export const APPLICATION_TRANSITIONS = Object.freeze({
@@ -105,9 +106,8 @@ export const createApplication = async (authUser, data) => {
   const productId = parsePositiveInteger(data.productId ?? data.product_id, 'productId');
   const locationId = parsePositiveInteger(data.locationId ?? data.location_id, 'locationId');
   const quantity = parsePositiveInteger(data.quantity, 'quantity');
-  const customerName = requiredText(data.customerName ?? data.customer_name ?? actor.name, 'customerName', 255);
-  const contactNumber = requiredText(data.contactNumber ?? data.contact_number, 'contactNumber', 50);
-  if (contactNumber.length < 7) throw new BadRequestError('contactNumber must contain at least 7 characters');
+  const customerName = validateFullName(data.customerName ?? data.customer_name ?? actor.name, 'Customer name');
+  const contactNumber = validateContactNumber(data.contactNumber ?? data.contact_number, { required: true, fieldName: 'Contact number' });
   const address = requiredText(data.address, 'address', 500);
   const purpose = requiredText(data.purpose, 'purpose', 500);
   const notes = optionalText(data.notes, 'notes', 1000);
