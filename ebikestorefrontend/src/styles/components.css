@@ -543,14 +543,16 @@
 .request-modal .request-item-row { padding:.7rem;border:1px solid #d1e5df;border-radius:11px;background:#f8fcfa; }
 .request-modal form > .btn-refresh.primary { justify-content:center;padding:.75rem 1rem;background:linear-gradient(135deg,#0f766e,#15947f);border-color:#0f766e;box-shadow:0 10px 20px -14px #0f766e; }
 .inventory-card-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:1rem;padding:.25rem; }
-.inventory-product-card { overflow:hidden;border:1px solid var(--color-border);border-radius:var(--radius-md);background:#fff; }
+.inventory-product-card { overflow:hidden;border:1px solid var(--color-border);border-radius:var(--radius-md);background:#fff;display:flex;flex-direction:column;min-width:0; }
 .inventory-product-card.low-stock { border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.12); }
 .inventory-product-card.zero-stock { border-color:#ef4444; }
-.inventory-product-image { height:135px;background:#f1f5f9;display:grid;place-items:center;color:#94a3b8; }
+.inventory-product-image { height:135px;background:#f1f5f9;display:grid;place-items:center;color:#94a3b8;flex-shrink:0; }
 .inventory-product-image img { width:100%;height:100%;object-fit:cover; }
-.inventory-product-copy { display:grid;gap:.55rem;padding:1rem; }
-.inventory-product-copy h3 { font-size:1rem;margin:0; }
-.inventory-card-status { display:flex;align-items:center;justify-content:space-between;gap:.5rem; }
+.inventory-product-copy { display:flex;flex-direction:column;gap:.55rem;padding:1rem;flex:1; }
+.inventory-product-copy h3 { font-size:1rem;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;word-break:break-word;overflow-wrap:break-word;line-height:1.3;min-height:2.6em; }
+.inventory-card-status { display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;flex-shrink:0;margin-top:auto; }
+.inventory-card-status strong { white-space:nowrap; }
+.inventory-card-status .availability-badge { flex-shrink:0; }
 .catalog-card-actions { display:flex;align-items:center;justify-content:flex-end;gap:.45rem;flex-wrap:wrap; }
 .movement-badge.walk_in_sale { color:#5b21b6;background:#ede9fe; }
 .inventory-toolbar { display: flex; align-items: end; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; padding: 1rem; }
@@ -1086,10 +1088,13 @@
 .catalog-toolbar form > div svg { z-index:2;color:#0f766e !important; }
 .catalog-toolbar input { min-height:45px;background:#fbfdfc !important;border-color:#c7ddd4 !important;border-radius:9px !important; }
 .catalog-toolbar input:focus { border-color:#0d9488 !important;box-shadow:0 0 0 3px rgba(13,148,136,.13) !important; }
-.catalog-product-card { position:relative;overflow:hidden;border-color:#d0e3db;box-shadow:0 16px 38px -29px rgba(15,23,42,.52); }
+.catalog-product-card { position:relative;overflow:hidden;border-color:#d0e3db;box-shadow:0 16px 38px -29px rgba(15,23,42,.52);min-width:0; }
 .catalog-product-card::before { content:'';position:absolute;z-index:2;inset:0 0 auto;height:4px;background:linear-gradient(90deg,#0f172a 0 72%,#86efac 72%); }
 .catalog-product-card:hover { border-color:#9bcab8;transform:translateY(-5px) !important;box-shadow:0 25px 48px -30px rgba(15,23,42,.62) !important; }
-.catalog-product-image { position:relative;background:linear-gradient(145deg,#eff6f3,#e4f2e9) !important;border-color:#d5e6df !important;border-radius:11px !important; }
+.catalog-product-card h3 { word-break:break-word;overflow-wrap:break-word; }
+.catalog-product-card .availability-badge { flex-shrink:0; }
+.product-card-badge-container { display:flex;align-items:center;flex-shrink:0; }
+.catalog-product-image { position:relative;background:linear-gradient(145deg,#eff6f3,#e4f2e9) !important;border-color:#d5e6df !important;border-radius:11px !important;flex-shrink:0; }
 .catalog-product-image::after { content:'FIDELO';position:absolute;right:.7rem;bottom:.65rem;padding:.2rem .45rem;color:#d1fae5;background:rgba(15,23,42,.82);border-radius:4px;font-size:.55rem;font-weight:800;letter-spacing:.12em; }
 .catalog-product-card .tech-tag { color:#0f766e !important;background:#dcfce7 !important;border:1px solid #bbf7d0 !important; }
 .catalog-product-action { border-color:#dce9e4 !important; }

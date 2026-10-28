@@ -356,11 +356,11 @@ export function InventoryPage() {
                       </div>
                       <div className="inventory-product-copy">
                         <small>{item.location_name}</small>
-                        <h3>{item.product_name}</h3>
+                        <h3 title={item.product_name}>{item.product_name}</h3>
                         <span className="muted">{item.sku}</span>
                         <div className="inventory-card-status">
                           <strong>{item.quantity} unit(s)</strong>
-                          <span className={`availability-badge ${item.availability}`}>{LABELS[item.availability]}</span>
+                          <span className={`availability-badge ${item.availability}`}>{LABELS[item.availability] || 'Out of Stock'}</span>
                         </div>
                         {!item.is_archived && (
                           <div className="threshold-control">

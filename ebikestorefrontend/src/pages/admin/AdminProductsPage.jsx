@@ -254,7 +254,7 @@ export function AdminProductsPage() {
                 <tbody>
                   {paginatedProducts.map((p) => (
                     <tr key={p.id}>
-                      <td>
+                      <td style={{ maxWidth: '280px', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                         <strong>{p.name}</strong>
                         {p.description && (
                           <small style={{ display: 'block', color: 'var(--color-text-muted)', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -409,12 +409,16 @@ export function AdminProductsPage() {
                 <input
                   type="text"
                   required
+                  maxLength={100}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Fidelo Horizon E-Bike 500W"
                   style={{ width: '100%', padding: '0.6rem', background: 'var(--color-bg-main)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', color: 'var(--color-text-primary)', fontSize: '0.85rem' }}
                   id="input-product-name"
                 />
+                <small style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+                  Max 100 characters ({formData.name.length}/100)
+                </small>
               </div>
 
               <div style={{ marginBottom: '1rem' }}>

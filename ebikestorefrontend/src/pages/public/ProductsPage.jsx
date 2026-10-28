@@ -164,13 +164,25 @@ export function ProductsPage() {
           <div className="grid-cols-3">
             {paginatedProducts.map((prod) => {
               const imageUrl = getImageUrl(prod.image_key);
+              const status = getStockStatus(prod);
+              const isOutOfStock = prod.availability === 'out_of_stock' || Number(prod.total_stock ?? 0) <= 0;
               return (
-                <div key={prod.id} className="card catalog-product-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '1.25rem', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+                <div
+                  key={prod.id}
+                  className="card catalog-product-card"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                    minWidth: 0,
+                    padding: '1.25rem',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                  }}
                   onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.06)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'var(--shadow-card)'; }}
                 >
                   {/* Image Box */}
-                  <div className="catalog-product-image" style={{ background: '#f8fafc', borderRadius: 'var(--radius-md)', height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: '1.5rem', border: '1px solid var(--color-border)' }}>
+                  <div className="catalog-product-image" style={{ background: '#f8fafc', borderRadius: 'var(--radius-md)', height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: '1.5rem', border: '1px solid var(--color-border)', flexShrink: 0 }}>
                     {imageUrl ? (
                       <img src={imageUrl} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
@@ -179,44 +191,71 @@ export function ProductsPage() {
                   </div>
 
                   {/* Product Metadata */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexShrink: 0 }}>
                     <span className="tech-tag" style={{ background: 'rgba(37, 99, 235, 0.08)', color: 'var(--color-brand-light)', border: 'none', fontWeight: '500' }}>{prod.category_name}</span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontFamily: 'monospace', fontWeight: '500', background: '#f1f5f9', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
                       SKU: {prod.sku}
                     </span>
                   </div>
 
-                  <h3 style={{ fontSize: '1.15rem', marginBottom: '0.5rem', lineHeight: '1.3' }}>{prod.name}</h3>
+                  <h3
+                    style={{
+                      fontSize: '1.15rem',
+                      fontWeight: '600',
+                      marginBottom: '0.5rem',
+                      lineHeight: '1.35',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      wordBreak: 'break-word',
+                      overflowWrap: 'break-word',
+                      minHeight: '2.7em'
+                    }}
+                    title={prod.name}
+                  >
+                    {prod.name}
+                  </h3>
                   
-                  <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: '1rem', flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  <p
+                    style={{
+                      fontSize: '0.85rem',
+                      color: 'var(--color-text-secondary)',
+                      marginBottom: '1rem',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      wordBreak: 'break-word',
+                      overflowWrap: 'break-word',
+                      minHeight: '2.4em'
+                    }}
+                  >
                     {prod.description || 'No description provided.'}
                   </p>
 
-                  <div style={{ marginBottom: '1rem' }}>
-                    {(() => {
-                      const status = getStockStatus(prod);
-                      return (
-                        <span className={`availability-badge ${status.className}`}>
-                          {status.label}
-                        </span>
-                      );
-                    })()}
+                  <div className="product-card-badge-container" style={{ marginBottom: '1rem', flexShrink: 0, marginTop: 'auto' }}>
+                    <span className={`availability-badge ${status.className}`}>
+                      {status.label}
+                    </span>
                   </div>
 
                   {/* Price & Action */}
-                  <div className="catalog-product-action" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', marginTop: 'auto' }}>
+                  <div className="catalog-product-action" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', flexShrink: 0 }}>
                     <span style={{ fontSize: '1.35rem', fontWeight: '700', color: '#0f172a' }}>
                       {formatCurrency(prod.unit_price)}
                     </span>
-                  <div className="catalog-card-actions">
-                  <Link to={`${isAccountCatalog ? '/account/products' : '/products'}/${prod.id}`} className="btn secondary" style={{ fontSize: '0.85rem' }} id={`link-product-detail-${prod.id}`}>
-                      <span>View Details</span>
-                      <ArrowRight size={14} />
-                    </Link>
-                    {prod.availability === 'out_of_stock'
-                      ? <button className="btn primary" disabled>Out of Stock</button>
-                      : <Link to={`/products/${prod.id}/apply`} className="btn primary" id={`link-buy-product-${prod.id}`}>Buy</Link>}
-                  </div>
+                    <div className="catalog-card-actions">
+                      <Link to={`${isAccountCatalog ? '/account/products' : '/products'}/${prod.id}`} className="btn secondary" style={{ fontSize: '0.85rem' }} id={`link-product-detail-${prod.id}`}>
+                        <span>View Details</span>
+                        <ArrowRight size={14} />
+                      </Link>
+                      {isOutOfStock
+                        ? <button className="btn primary" disabled>Out of Stock</button>
+                        : <Link to={`/products/${prod.id}/apply`} className="btn primary" id={`link-buy-product-${prod.id}`}>Buy</Link>}
+                    </div>
                   </div>
                 </div>
               );

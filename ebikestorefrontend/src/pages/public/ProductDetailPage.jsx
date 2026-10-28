@@ -95,7 +95,7 @@ export function ProductDetailPage() {
             <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>SKU: {product.sku}</span>
           </div>
 
-          <h1 style={{ fontSize: '2.2rem', marginBottom: '1rem', lineHeight: '1.2' }}>{product.name}</h1>
+          <h1 style={{ fontSize: '2.2rem', marginBottom: '1rem', lineHeight: '1.2', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{product.name}</h1>
 
           <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--color-status-success)', marginBottom: '1.5rem' }}>
             {formatCurrency(product.unit_price)}
@@ -112,9 +112,9 @@ export function ProductDetailPage() {
             <strong style={{ color: 'var(--color-text-primary)' }}>Availability by location</strong>
             <div className="public-location-list">
               {(product.availability_by_location || []).map((location) => (
-                <div key={location.location_id}>
-                  <span>{location.location_name}</span>
-                  <span className={`availability-badge ${location.availability}`}>{availabilityLabels[location.availability]}</span>
+                <div key={location.location_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                  <span style={{ wordBreak: 'break-word' }}>{location.location_name}</span>
+                  <span className={`availability-badge ${location.availability}`} style={{ flexShrink: 0 }}>{availabilityLabels[location.availability]}</span>
                 </div>
               ))}
             </div>

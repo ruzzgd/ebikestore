@@ -15,8 +15,8 @@ export const getProductById = async (id) => {
   return { ...product, availability_by_location: availabilityByLocation };
 };
 
-export const createProduct = async ({ categoryId, sku, name, description, unitPrice, imageKey }) => {
-  if (!categoryId || !sku || !name || unitPrice === undefined) {
+export const validateProductInput = ({ sku, name, unitPrice }) => {
+  if (!sku || !name || unitPrice === undefined) {
     throw new BadRequestError('Category, SKU, Name, and Unit Price are required');
   }
 
@@ -25,6 +25,26 @@ export const createProduct = async ({ categoryId, sku, name, description, unitPr
     throw new BadRequestError('SKU cannot exceed 30 characters');
   }
   const cleanName = name.trim();
+  if (!cleanName) {
+    throw new BadRequestError('Product name cannot be empty');
+  }
+  if (cleanName.length > 100) {
+    throw new BadRequestError('Product name cannot exceed 100 characters');
+  }
+
+  const parsedPrice = parseFloat(unitPrice);
+  if (isNaN(parsedPrice) || parsedPrice < 0) {
+    throw new BadRequestError('Unit price must be a non-negative number');
+  }
+
+  return { cleanSku, cleanName, parsedPrice };
+};
+
+export const createProduct = async ({ categoryId, sku, name, description, unitPrice, imageKey }) => {
+  if (!categoryId) {
+    throw new BadRequestError('Category is required');
+  }
+  const { cleanSku, cleanName, parsedPrice } = validateProductInput({ sku, name, unitPrice });
 
   // Validate category exists
   const category = await categoryRepository.findCategoryById(parseInt(categoryId, 10));
@@ -36,11 +56,6 @@ export const createProduct = async ({ categoryId, sku, name, description, unitPr
   const existingSku = await productRepository.findProductBySku(cleanSku);
   if (existingSku) {
     throw new ConflictError(`Product SKU '${cleanSku}' already exists`);
-  }
-
-  const parsedPrice = parseFloat(unitPrice);
-  if (isNaN(parsedPrice) || parsedPrice < 0) {
-    throw new BadRequestError('Unit price must be a non-negative number');
   }
 
   const productId = await productRepository.createProduct({
@@ -86,10 +101,18 @@ export const updateProduct = async (id, { categoryId, sku, name, description, un
     throw new BadRequestError('Unit price must be a non-negative number');
   }
 
+  const cleanName = name !== undefined ? name.trim() : product.name;
+  if (!cleanName) {
+    throw new BadRequestError('Product name cannot be empty');
+  }
+  if (cleanName.length > 100) {
+    throw new BadRequestError('Product name cannot exceed 100 characters');
+  }
+
   await productRepository.updateProduct(id, {
     categoryId: targetCategoryId,
     sku: cleanSku,
-    name: name !== undefined ? name.trim() : product.name,
+    name: cleanName,
     description: description !== undefined ? description.trim() : product.description,
     unitPrice: parsedPrice,
     imageKey: imageKey !== undefined ? imageKey : product.image_key,
