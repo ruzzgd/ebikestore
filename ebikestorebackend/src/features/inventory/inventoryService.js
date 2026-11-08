@@ -47,8 +47,13 @@ const resolveLocationAccess = (actor, requestedLocationId, { required = false } 
     if (required && !parsed) throw new BadRequestError('locationId is required');
     return parsed;
   }
-  if (parsed && parsed !== actor.location_id) throw new ForbiddenError('Staff may only access their assigned location');
-  return actor.location_id;
+  // For non-read operations where required is true, staff must only operate on their assigned location
+  if (required) {
+    if (parsed && parsed !== actor.location_id) throw new ForbiddenError('Staff may only access their assigned location');
+    return actor.location_id;
+  }
+  // For viewing inventory, staff can view requested location or null for all (matching admin's inventory view)
+  return parsed;
 };
 
 const validateTarget = async (productIdValue, locationIdValue, actor) => {

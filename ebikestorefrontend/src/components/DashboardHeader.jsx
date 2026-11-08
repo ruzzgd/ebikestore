@@ -17,6 +17,7 @@ const NAV_ITEMS = {
   ],
   branch_staff: [
     { to: '/staff', label: 'Overview', icon: LayoutDashboard, end: true },
+    { to: '/admin/products', label: 'Products', icon: CarFront },
     { to: '/inventory', label: 'Inventory', icon: Boxes },
     { to: '/transfers', label: 'Transfers', icon: Package },
     { to: '/manage/applications', label: 'Applications', icon: ClipboardCheck },
@@ -24,6 +25,7 @@ const NAV_ITEMS = {
   ],
   warehouse_staff: [
     { to: '/warehouse', label: 'Overview', icon: LayoutDashboard, end: true },
+    { to: '/admin/products', label: 'Products', icon: CarFront },
     { to: '/inventory', label: 'Inventory', icon: Boxes },
     { to: '/transfers', label: 'Transfers', icon: Package },
     { to: '/reports', label: 'Reports', icon: BarChart3 },

@@ -1,5 +1,10 @@
 import productRepository from './productRepository.js';
 import categoryRepository from '../categories/categoryRepository.js';
+import locationRepository from '../locations/locationRepository.js';
+import inventoryRepository from '../inventory/inventoryRepository.js';
+import stockMovementRepository from '../inventory/stockMovementRepository.js';
+import userRepository from '../users/userRepository.js';
+import { getPool } from '../../db/connection.js';
 import { BadRequestError, ConflictError, NotFoundError } from '../../utils/errors.js';
 
 export const getProducts = async (options = {}) => {
@@ -40,7 +45,10 @@ export const validateProductInput = ({ sku, name, unitPrice }) => {
   return { cleanSku, cleanName, parsedPrice };
 };
 
-export const createProduct = async ({ categoryId, sku, name, description, unitPrice, imageKey }) => {
+export const createProduct = async (
+  { categoryId, sku, name, description, availableColors = '', unitPrice, imageKey, initialQuantity = 0, locationId = null },
+  authUser = null
+) => {
   if (!categoryId) {
     throw new BadRequestError('Category is required');
   }
@@ -58,20 +66,76 @@ export const createProduct = async ({ categoryId, sku, name, description, unitPr
     throw new ConflictError(`Product SKU '${cleanSku}' already exists`);
   }
 
-  const productId = await productRepository.createProduct({
-    categoryId: category.id,
-    sku: cleanSku,
-    name: cleanName,
-    description: description?.trim() || '',
-    unitPrice: parsedPrice,
-    imageKey: imageKey || null,
-    isActive: true,
-  });
+  const cleanColors = availableColors ? String(availableColors).trim() : null;
+  const pool = getPool();
+  const connection = await pool.getConnection();
 
-  return await productRepository.findProductById(productId);
+  try {
+    await connection.beginTransaction();
+
+    const [result] = await connection.execute(
+      `INSERT INTO products (category_id, sku, name, description, available_colors, unit_price, image_key, is_active)
+       VALUES (?, ?, ?, ?, ?, ?, ?, true)`,
+      [category.id, cleanSku, cleanName, description?.trim() || '', cleanColors, parsedPrice, imageKey || null]
+    );
+    const productId = result.insertId;
+
+    // Fetch all active locations to initialize inventory records so product immediately appears in inventory
+    const [locations] = await connection.execute(
+      `SELECT id, code, name, type FROM locations WHERE is_active = true`
+    );
+
+    // Determine target location for initial stock if initialQuantity > 0
+    let targetLocationId = null;
+    const initQty = parseInt(initialQuantity, 10) || 0;
+
+    if (initQty > 0) {
+      if (authUser?.location_id) {
+        targetLocationId = authUser.location_id;
+      } else if (locationId) {
+        targetLocationId = parseInt(locationId, 10);
+      } else if (locations.length > 0) {
+        targetLocationId = locations[0].id;
+      }
+    }
+
+    for (const loc of locations) {
+      const isTarget = targetLocationId && loc.id === targetLocationId;
+      const startingStock = isTarget ? initQty : 0;
+      await connection.execute(
+        `INSERT INTO inventory (product_id, location_id, quantity, low_stock_threshold)
+         VALUES (?, ?, ?, 0)
+         ON DUPLICATE KEY UPDATE quantity = quantity`,
+        [productId, loc.id, startingStock]
+      );
+
+      if (isTarget && startingStock > 0 && authUser?.userId) {
+        await stockMovementRepository.createMovement(connection, {
+          productId,
+          locationId: loc.id,
+          type: 'stock_in',
+          quantity: startingStock,
+          quantityBefore: 0,
+          quantityAfter: startingStock,
+          referenceType: 'initial_stock',
+          referenceId: String(productId),
+          note: 'Initial stock on product creation',
+          performedByUserId: authUser.userId,
+        });
+      }
+    }
+
+    await connection.commit();
+    return await productRepository.findProductById(productId);
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 };
 
-export const updateProduct = async (id, { categoryId, sku, name, description, unitPrice, imageKey, isActive }) => {
+export const updateProduct = async (id, { categoryId, sku, name, description, availableColors, unitPrice, imageKey, isActive }) => {
   const product = await productRepository.findProductById(id);
   if (!product) {
     throw new NotFoundError('Product not found');
@@ -114,6 +178,7 @@ export const updateProduct = async (id, { categoryId, sku, name, description, un
     sku: cleanSku,
     name: cleanName,
     description: description !== undefined ? description.trim() : product.description,
+    availableColors: availableColors !== undefined ? (availableColors ? String(availableColors).trim() : null) : product.available_colors,
     unitPrice: parsedPrice,
     imageKey: imageKey !== undefined ? imageKey : product.image_key,
     isActive: isActive !== undefined ? Boolean(isActive) : product.is_active,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Warehouse, Package } from 'lucide-react';
+import { Warehouse, Package, CarFront } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import OperationalWarnings from '../../components/OperationalWarnings.jsx';
 import { useAuth } from '../../hooks/useAuth.js';
@@ -18,9 +18,12 @@ export function WarehouseDashboard() {
       </p>
       <div className="dashboard-hero" style={{ fontSize: '0.9rem' }}>
         <p style={{ marginBottom: '1rem' }}>Manage stock and movement history for your assigned warehouse: <strong>{user?.location_name || 'location not assigned'}</strong>.</p>
-        <div className="dashboard-actions"><Link to="/inventory" className="btn-refresh primary"><Package size={15} /> Open Warehouse Inventory</Link>
-        <Link to="/transfers" className="btn-refresh">Transfer Requests</Link>
-        <Link to="/reports" className="btn-refresh">Reports</Link></div>
+        <div className="dashboard-actions">
+          <Link to="/admin/products" className="btn-refresh"><CarFront size={15} /> Manage / Create Products</Link>
+          <Link to="/inventory" className="btn-refresh primary"><Package size={15} /> Open Warehouse Inventory</Link>
+          <Link to="/transfers" className="btn-refresh">Transfer Requests</Link>
+          <Link to="/reports" className="btn-refresh">Reports</Link>
+        </div>
       </div>
     </div></div>
   );

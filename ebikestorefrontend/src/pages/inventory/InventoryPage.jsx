@@ -51,7 +51,8 @@ export function InventoryPage() {
   const [movementPage, setMovementPage] = useState(1);
   const PAGE_SIZE = 10;
 
-  const effectiveLocation = isAdmin ? locationFilter : user?.location_id;
+  const [isStaffOrAdmin, setIsStaffOrAdmin] = useState(false);
+  const effectiveLocation = locationFilter;
   const selectedInventory = useMemo(() => inventory.find((item) =>
     String(item.product_id) === String(operation.productId) &&
     String(item.location_id) === String(isAdmin ? operation.locationId : user?.location_id)),
@@ -63,8 +64,7 @@ export function InventoryPage() {
     try {
       const filters = { locationId: effectiveLocation || '', search, archived: showArchived };
       const movementFilters = { locationId: effectiveLocation || '', type: movementType, limit: 100 };
-      const requests = [inventoryService.getInventory(filters), stockMovementService.getMovements(movementFilters), productService.getProducts({ activeOnly: true })];
-      if (isAdmin) requests.push(locationService.getLocations());
+      const requests = [inventoryService.getInventory(filters), stockMovementService.getMovements(movementFilters), productService.getProducts({ activeOnly: true }), locationService.getLocations()];
       const [inventoryData, movementData, productData, locationData = []] = await Promise.all(requests);
       setInventory(inventoryData);
       setMovements(movementData);
@@ -288,15 +288,13 @@ export function InventoryPage() {
       </div>
 
       <div className="inventory-toolbar card">
-        {isAdmin && (
-          <label>
-            Location
-            <select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} style={inputStyle}>
-              <option value="">All locations</option>
-              {locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}
-            </select>
-          </label>
-        )}
+        <label>
+          Location
+          <select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} style={inputStyle}>
+            <option value="">All locations</option>
+            {locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}
+          </select>
+        </label>
         <label style={{ flex: 1, minWidth: '220px' }}>
           Search product
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -358,6 +356,15 @@ export function InventoryPage() {
                         <small>{item.location_name}</small>
                         <h3 title={item.product_name}>{item.product_name}</h3>
                         <span className="muted">{item.sku}</span>
+                        {item.available_colors && (
+                          <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', margin: '0.35rem 0' }}>
+                            {item.available_colors.split(',').map((c, idx) => (
+                              <span key={idx} className="tech-tag" style={{ fontSize: '0.72rem', padding: '0.1rem 0.35rem' }}>
+                                {c.trim()}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                         <div className="inventory-card-status">
                           <strong>{item.quantity} unit(s)</strong>
                           <span className={`availability-badge ${item.availability}`}>{LABELS[item.availability] || 'Out of Stock'}</span>
@@ -406,6 +413,7 @@ export function InventoryPage() {
                     <thead>
                       <tr>
                         <th>Product</th>
+                        <th>Colors</th>
                         <th>Location</th>
                         <th>Quantity</th>
                         <th>Status</th>
@@ -417,6 +425,19 @@ export function InventoryPage() {
                       {paginatedInventory.map((item) => (
                         <tr className={item.is_low_stock ? 'low-stock-row' : ''} key={item.id}>
                           <td><strong>{item.product_name}</strong><small>{item.sku}</small></td>
+                          <td>
+                            {item.available_colors ? (
+                              <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                                {item.available_colors.split(',').map((c, idx) => (
+                                  <span key={idx} className="tech-tag" style={{ fontSize: '0.72rem', padding: '0.1rem 0.35rem' }}>
+                                    {c.trim()}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>-</span>
+                            )}
+                          </td>
                           <td>{item.location_name}</td>
                           <td className="quantity-cell">{item.quantity}</td>
                           <td><span className={`availability-badge ${item.availability}`}>{LABELS[item.availability]}</span></td>

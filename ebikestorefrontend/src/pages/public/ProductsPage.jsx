@@ -237,6 +237,15 @@ export function ProductsPage() {
                   </p>
 
                   <div className="product-card-badge-container" style={{ marginBottom: '1rem', flexShrink: 0, marginTop: 'auto' }}>
+                    {prod.available_colors && (
+                      <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+                        {prod.available_colors.split(',').map((c, i) => (
+                          <span key={i} className="tech-tag" style={{ fontSize: '0.72rem', padding: '0.1rem 0.35rem' }}>
+                            {c.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <span className={`availability-badge ${status.className}`}>
                       {status.label}
                     </span>

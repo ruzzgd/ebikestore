@@ -12,8 +12,9 @@ export function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const isAccountCatalog = location.pathname.startsWith('/account/products');
-  const backPath = user?.role === 'admin' ? '/admin/products' : isAccountCatalog ? '/account/products' : '/products';
-  const backLabel = user?.role === 'admin' ? 'Back to Product Management' : 'Back to Products';
+  const isStaffOrAdmin = user?.role === 'admin' || user?.role === 'branch_staff' || user?.role === 'warehouse_staff';
+  const backPath = isStaffOrAdmin ? '/admin/products' : isAccountCatalog ? '/account/products' : '/products';
+  const backLabel = isStaffOrAdmin ? 'Back to Product Management' : 'Back to Products';
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -100,6 +101,19 @@ export function ProductDetailPage() {
           <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--color-status-success)', marginBottom: '1.5rem' }}>
             {formatCurrency(product.unit_price)}
           </div>
+
+          {product.available_colors && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h4 style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem', marginBottom: '0.4rem', textTransform: 'uppercase' }}>Available Colors</h4>
+              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                {product.available_colors.split(',').map((color, index) => (
+                  <span key={index} className="tech-tag" style={{ padding: '0.25rem 0.6rem', fontSize: '0.85rem' }}>
+                    {color.trim()}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div style={{ marginBottom: '1.5rem' }}>
             <h4 style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem', marginBottom: '0.4rem', textTransform: 'uppercase' }}>Description</h4>

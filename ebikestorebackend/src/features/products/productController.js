@@ -36,8 +36,11 @@ export const getProductById = asyncHandler(async (req, res) => {
 });
 
 export const createProduct = asyncHandler(async (req, res) => {
-  const { categoryId, sku, name, description, unitPrice, imageKey } = req.body;
-  const product = await productService.createProduct({ categoryId, sku, name, description, unitPrice, imageKey });
+  const { categoryId, sku, name, description, availableColors, unitPrice, imageKey, initialQuantity, locationId } = req.body;
+  const product = await productService.createProduct(
+    { categoryId, sku, name, description, availableColors, unitPrice, imageKey, initialQuantity, locationId },
+    req.user
+  );
   res.status(201).json({
     status: 'success',
     data: { product },
@@ -45,12 +48,13 @@ export const createProduct = asyncHandler(async (req, res) => {
 });
 
 export const updateProduct = asyncHandler(async (req, res) => {
-  const { categoryId, sku, name, description, unitPrice, imageKey, isActive } = req.body;
+  const { categoryId, sku, name, description, availableColors, unitPrice, imageKey, isActive } = req.body;
   const product = await productService.updateProduct(parseInt(req.params.id, 10), {
     categoryId,
     sku,
     name,
     description,
+    availableColors,
     unitPrice,
     imageKey,
     isActive,

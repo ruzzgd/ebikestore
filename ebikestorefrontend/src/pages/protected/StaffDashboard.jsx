@@ -1,5 +1,5 @@
 import React from 'react';
-import { Store, UserCheck } from 'lucide-react';
+import { Store, UserCheck, CarFront } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import OperationalWarnings from '../../components/OperationalWarnings.jsx';
 import reportService from '../../services/reportService.js';
@@ -26,10 +26,13 @@ export function StaffDashboard() {
       </p>
       <div className="dashboard-hero" style={{ fontSize: '0.9rem' }}>
         <p style={{ marginBottom: '1rem' }}>Manage stock and movement history for your assigned branch: <strong>{user?.location_name || 'location not assigned'}</strong>.</p>
-        <div className="dashboard-actions"><Link to="/inventory" className="btn-refresh primary">Open Branch Inventory</Link>
-        <Link to="/transfers" className="btn-refresh">Transfer Requests</Link>
-        <Link to="/manage/applications" className="btn-refresh">Customer Applications</Link>
-        <Link to="/reports" className="btn-refresh">Reports</Link></div>
+        <div className="dashboard-actions">
+          <Link to="/admin/products" className="btn-refresh"><CarFront size={15} /> Manage / Create Products</Link>
+          <Link to="/inventory" className="btn-refresh primary">Open Branch Inventory</Link>
+          <Link to="/transfers" className="btn-refresh">Transfer Requests</Link>
+          <Link to="/manage/applications" className="btn-refresh">Customer Applications</Link>
+          <Link to="/reports" className="btn-refresh">Reports</Link>
+        </div>
       </div>
       
       {overviewStats && (

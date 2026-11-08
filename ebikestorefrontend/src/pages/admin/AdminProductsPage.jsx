@@ -1,15 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { CarFront, Eye, Edit2, CheckCircle, XCircle, ArrowLeft, RefreshCw, ImagePlus, Plus, X, Search } from 'lucide-react';
+import { CarFront, Eye, Edit2, CheckCircle, XCircle, ArrowLeft, RefreshCw, ImagePlus, Plus, X, Search, Palette } from 'lucide-react';
 import productService from '../../services/productService.js';
 import categoryService from '../../services/categoryService.js';
+import locationService from '../../services/locationService.js';
 import uploadService from '../../services/uploadService.js';
 import Pagination from '../../components/Pagination.jsx';
 import ErrorModal from '../../components/ErrorModal.jsx';
+import { useAuth } from '../../hooks/useAuth.js';
 
 export function AdminProductsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -26,8 +31,11 @@ export function AdminProductsPage() {
     sku: '',
     name: '',
     description: '',
+    availableColors: '',
     unitPrice: '',
     imageKey: '',
+    initialQuantity: '0',
+    locationId: '',
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -38,14 +46,22 @@ export function AdminProductsPage() {
     setLoading(true);
     setError('');
     try {
-      const [prodsData, catsData] = await Promise.all([
+      const requests = [
         productService.getProducts({ activeOnly: false }),
         categoryService.getCategories(true),
-      ]);
+      ];
+      if (isAdmin) {
+        requests.push(locationService.getLocations());
+      }
+      const [prodsData, catsData, locsData = []] = await Promise.all(requests);
       setProducts(prodsData);
       setCategories(catsData);
+      setLocations(locsData.filter((l) => l.is_active));
       if (catsData.length > 0 && !formData.categoryId) {
         setFormData((prev) => ({ ...prev, categoryId: catsData[0].id }));
+      }
+      if (locsData.length > 0 && !formData.locationId) {
+        setFormData((prev) => ({ ...prev, locationId: locsData[0].id }));
       }
     } catch (err) {
       setError(err.message || 'Failed to load products');
@@ -85,8 +101,11 @@ export function AdminProductsPage() {
       sku: '',
       name: '',
       description: '',
+      availableColors: '',
       unitPrice: '',
       imageKey: '',
+      initialQuantity: '0',
+      locationId: locations.length > 0 ? locations[0].id : '',
     });
     setImagePreviewUrl('');
     setIsEditing(false);
@@ -104,8 +123,11 @@ export function AdminProductsPage() {
       sku: prod.sku,
       name: prod.name,
       description: prod.description || '',
+      availableColors: prod.available_colors || '',
       unitPrice: prod.unit_price,
       imageKey: prod.image_key || '',
+      initialQuantity: '0',
+      locationId: '',
     });
     if (prod.image_key) {
       const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1';
@@ -246,6 +268,7 @@ export function AdminProductsPage() {
                     <th>Product</th>
                     <th>Category</th>
                     <th>SKU</th>
+                    <th>Colors</th>
                     <th>Unit Price</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -266,6 +289,19 @@ export function AdminProductsPage() {
                         <span className="tech-tag">{p.category_name}</span>
                       </td>
                       <td style={{ fontFamily: 'monospace' }}>{p.sku}</td>
+                      <td>
+                        {p.available_colors ? (
+                          <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                            {p.available_colors.split(',').map((c, i) => (
+                              <span key={i} className="tech-tag" style={{ fontSize: '0.75rem', padding: '0.15rem 0.4rem' }}>
+                                {c.trim()}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>-</span>
+                        )}
+                      </td>
                       <td style={{ fontWeight: 600 }}>{formatCurrency(p.unit_price)}</td>
                       <td>
                         <span className={`user-status-pill ${p.is_active ? 'active' : 'inactive'}`}>
@@ -420,6 +456,59 @@ export function AdminProductsPage() {
                   Max 100 characters ({formData.name.length}/100)
                 </small>
               </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>
+                  Available Colors (e.g. Red, Matte Black, Metallic Blue)
+                </label>
+                <input
+                  type="text"
+                  value={formData.availableColors}
+                  onChange={(e) => setFormData({ ...formData, availableColors: e.target.value })}
+                  placeholder="Red, Blue, Black, White"
+                  style={{ width: '100%', padding: '0.6rem', background: 'var(--color-bg-main)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', color: 'var(--color-text-primary)', fontSize: '0.85rem' }}
+                  id="input-product-colors"
+                />
+                <small style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+                  Separate colors with commas.
+                </small>
+              </div>
+
+              {!isEditing && (
+                <div className="responsive-form-row" style={{ display: 'grid', gridTemplateColumns: isAdmin ? '1fr 1fr' : '1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>
+                      Initial Stock Quantity
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.initialQuantity}
+                      onChange={(e) => setFormData({ ...formData, initialQuantity: e.target.value })}
+                      placeholder="0"
+                      style={{ width: '100%', padding: '0.6rem', background: 'var(--color-bg-main)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', color: 'var(--color-text-primary)', fontSize: '0.85rem' }}
+                      id="input-product-initial-qty"
+                    />
+                  </div>
+                  {isAdmin && (
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>
+                        Assign Initial Stock To Location
+                      </label>
+                      <select
+                        value={formData.locationId}
+                        onChange={(e) => setFormData({ ...formData, locationId: e.target.value })}
+                        style={{ width: '100%', padding: '0.6rem', background: 'var(--color-bg-main)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', color: 'var(--color-text-primary)', fontSize: '0.85rem' }}
+                        id="select-product-location"
+                      >
+                        {locations.map((loc) => (
+                          <option key={loc.id} value={loc.id}>{loc.name} ({loc.type})</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>

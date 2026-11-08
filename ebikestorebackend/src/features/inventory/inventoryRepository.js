@@ -10,7 +10,7 @@ const inventorySelect = `
            ELSE 'available'
          END AS availability,
          i.created_at, i.updated_at,
-         p.sku, p.name AS product_name, p.image_key, p.unit_price, p.is_active AS product_is_active,
+         p.sku, p.name AS product_name, p.available_colors, p.image_key, p.unit_price, p.is_active AS product_is_active,
          l.code AS location_code, l.name AS location_name, l.type AS location_type,
          l.is_active AS location_is_active
   FROM inventory i

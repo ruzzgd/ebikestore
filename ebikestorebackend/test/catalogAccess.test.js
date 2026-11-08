@@ -5,9 +5,15 @@ import { normalizeProductListQuery } from '../src/features/products/productContr
 import { assertCategoryCanBeDeactivated } from '../src/features/categories/categoryService.js';
 import { validateProductInput } from '../src/features/products/productService.js';
 
-const runAuthorization = (role) => {
+const runCategoryAuthorization = (role) => {
   let receivedError;
   authorize('admin')({ user: { role } }, {}, (error) => { receivedError = error; });
+  return receivedError;
+};
+
+const runProductAuthorization = (role) => {
+  let receivedError;
+  authorize('admin', 'branch_staff', 'warehouse_staff')({ user: { role } }, {}, (error) => { receivedError = error; });
   return receivedError;
 };
 
@@ -21,13 +27,20 @@ test('product catalog category filter is normalized for repository use', () => {
   });
 });
 
-test('admin can pass catalog write authorization', () => {
-  assert.equal(runAuthorization('admin'), undefined);
+test('authorized roles can pass product write authorization', () => {
+  assert.equal(runProductAuthorization('admin'), undefined);
+  assert.equal(runProductAuthorization('branch_staff'), undefined);
+  assert.equal(runProductAuthorization('warehouse_staff'), undefined);
 });
 
-test('non-admin roles cannot pass product or category write authorization', () => {
+test('customer role cannot pass product write authorization', () => {
+  const error = runProductAuthorization('customer');
+  assert.equal(error?.statusCode, 403);
+});
+
+test('non-admin roles cannot pass category write authorization', () => {
   for (const role of ['branch_staff', 'warehouse_staff', 'customer']) {
-    const error = runAuthorization(role);
+    const error = runCategoryAuthorization(role);
     assert.equal(error?.statusCode, 403);
   }
 });

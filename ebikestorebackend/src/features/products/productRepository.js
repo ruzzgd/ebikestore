@@ -2,7 +2,7 @@ import { query } from '../../db/connection.js';
 
 export const listProducts = async ({ activeOnly = false, categoryId = null, search = '', limit = 50, offset = 0 } = {}) => {
   let sql = `
-    SELECT p.id, p.category_id, p.sku, p.name, p.description, p.unit_price, p.image_key, p.is_active, p.created_at, p.updated_at,
+    SELECT p.id, p.category_id, p.sku, p.name, p.description, p.available_colors, p.unit_price, p.image_key, p.is_active, p.created_at, p.updated_at,
            c.name AS category_name,
            COALESCE((
              SELECT SUM(i.quantity)
@@ -55,7 +55,7 @@ export const listProducts = async ({ activeOnly = false, categoryId = null, sear
 
 export const findProductById = async (id) => {
   const [rows] = await query(
-    `SELECT p.id, p.category_id, p.sku, p.name, p.description, p.unit_price, p.image_key, p.is_active, p.created_at, p.updated_at,
+    `SELECT p.id, p.category_id, p.sku, p.name, p.description, p.available_colors, p.unit_price, p.image_key, p.is_active, p.created_at, p.updated_at,
             c.name AS category_name,
             COALESCE((
               SELECT SUM(i.quantity)
@@ -86,7 +86,7 @@ export const findProductById = async (id) => {
 
 export const findProductBySku = async (sku) => {
   const [rows] = await query(
-    `SELECT p.id, p.category_id, p.sku, p.name, p.description, p.unit_price, p.image_key, p.is_active, p.created_at, p.updated_at,
+    `SELECT p.id, p.category_id, p.sku, p.name, p.description, p.available_colors, p.unit_price, p.image_key, p.is_active, p.created_at, p.updated_at,
             c.name AS category_name
      FROM products p
      INNER JOIN categories c ON p.category_id = c.id
@@ -113,21 +113,21 @@ export const listPublicAvailabilityByProduct = async (productId) => {
   return rows;
 };
 
-export const createProduct = async ({ categoryId, sku, name, description = '', unitPrice = 0.00, imageKey = null, isActive = true }) => {
+export const createProduct = async ({ categoryId, sku, name, description = '', availableColors = '', unitPrice = 0.00, imageKey = null, isActive = true }) => {
   const [result] = await query(
-    `INSERT INTO products (category_id, sku, name, description, unit_price, image_key, is_active) 
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [categoryId, sku, name, description, unitPrice, imageKey, isActive]
+    `INSERT INTO products (category_id, sku, name, description, available_colors, unit_price, image_key, is_active) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [categoryId, sku, name, description, availableColors || null, unitPrice, imageKey, isActive]
   );
   return result.insertId;
 };
 
-export const updateProduct = async (id, { categoryId, sku, name, description, unitPrice, imageKey, isActive }) => {
+export const updateProduct = async (id, { categoryId, sku, name, description, availableColors, unitPrice, imageKey, isActive }) => {
   await query(
     `UPDATE products 
-     SET category_id = ?, sku = ?, name = ?, description = ?, unit_price = ?, image_key = ?, is_active = ? 
+     SET category_id = ?, sku = ?, name = ?, description = ?, available_colors = ?, unit_price = ?, image_key = ?, is_active = ? 
      WHERE id = ?`,
-    [categoryId, sku, name, description, unitPrice, imageKey, isActive, id]
+    [categoryId, sku, name, description, availableColors || null, unitPrice, imageKey, isActive, id]
   );
 };
 
