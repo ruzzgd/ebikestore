@@ -15,6 +15,7 @@ const inputStyle = { width: '100%', padding: '0.6rem', background: 'var(--color-
 export function InventoryPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const canEditProduct = isAdmin || user?.role === 'branch_staff' || user?.role === 'warehouse_staff';
   const [inventory, setInventory] = useState([]);
   const [movements, setMovements] = useState([]);
   const [products, setProducts] = useState([]);
@@ -51,7 +52,6 @@ export function InventoryPage() {
   const [movementPage, setMovementPage] = useState(1);
   const PAGE_SIZE = 10;
 
-  const [isStaffOrAdmin, setIsStaffOrAdmin] = useState(false);
   const effectiveLocation = locationFilter;
   const selectedInventory = useMemo(() => inventory.find((item) =>
     String(item.product_id) === String(operation.productId) &&
@@ -190,8 +190,8 @@ export function InventoryPage() {
         await inventoryService.updateThreshold(editingItem.id, Number(editForm.threshold));
       }
 
-      // 2. Update product if admin and changed
-      if (isAdmin) {
+      // 2. Update product if admin or authorized staff and changed
+      if (canEditProduct) {
         const prodChanges = {};
         if (editForm.productName && editForm.productName !== editingItem.product_name) prodChanges.name = editForm.productName;
         if (editForm.sku && editForm.sku !== editingItem.sku) prodChanges.sku = editForm.sku;
@@ -344,142 +344,67 @@ export function InventoryPage() {
                 : 'No stock records are configured for these filters. Use stock-in to establish initial stock.'}
             </p>
           ) : (
-            isAdmin ? (
-              <>
-                <div className="inventory-card-grid">
-                  {paginatedInventory.map((item) => (
-                    <article className={`inventory-product-card ${item.is_low_stock ? 'low-stock' : ''} ${item.quantity <= 0 ? 'zero-stock' : ''}`} key={item.id}>
-                      <div className="inventory-product-image">
-                        {getImageUrl(item.image_key) ? <img src={getImageUrl(item.image_key)} alt={item.product_name} /> : <Package size={36} />}
-                      </div>
-                      <div className="inventory-product-copy">
-                        <small>{item.location_name}</small>
-                        <h3 title={item.product_name}>{item.product_name}</h3>
-                        <span className="muted">{item.sku}</span>
-                        {item.available_colors && (
-                          <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', margin: '0.35rem 0' }}>
-                            {item.available_colors.split(',').map((c, idx) => (
-                              <span key={idx} className="tech-tag" style={{ fontSize: '0.72rem', padding: '0.1rem 0.35rem' }}>
-                                {c.trim()}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        <div className="inventory-card-status">
-                          <strong>{item.quantity} unit(s)</strong>
-                          <span className={`availability-badge ${item.availability}`}>{LABELS[item.availability] || 'Out of Stock'}</span>
+            <>
+              <div className="inventory-card-grid">
+                {paginatedInventory.map((item) => (
+                  <article className={`inventory-product-card ${item.is_low_stock ? 'low-stock' : ''} ${item.quantity <= 0 ? 'zero-stock' : ''}`} key={item.id}>
+                    <div className="inventory-product-image">
+                      {getImageUrl(item.image_key) ? <img src={getImageUrl(item.image_key)} alt={item.product_name} /> : <Package size={36} />}
+                    </div>
+                    <div className="inventory-product-copy">
+                      <small>{item.location_name}</small>
+                      <h3 title={item.product_name}>{item.product_name}</h3>
+                      <span className="muted">{item.sku}</span>
+                      {item.available_colors && (
+                        <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', margin: '0.35rem 0' }}>
+                          {item.available_colors.split(',').map((c, idx) => (
+                            <span key={idx} className="tech-tag" style={{ fontSize: '0.72rem', padding: '0.1rem 0.35rem' }}>
+                              {c.trim()}
+                            </span>
+                          ))}
                         </div>
-                        {!item.is_archived && (
-                          <div className="threshold-control">
-                            <input aria-label={`Threshold for ${item.product_name}`} type="number" min="0" value={thresholds[item.id] ?? 0} onChange={(e) => setThresholds({ ...thresholds, [item.id]: e.target.value })} />
-                            <button onClick={() => saveThreshold(item)}>Save threshold</button>
-                          </div>
-                        )}
-                        <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem' }}>
-                          <button
-                            type="button"
-                            className="btn-refresh primary"
-                            onClick={() => openEditModal(item)}
-                            style={{ flex: 1, justifyContent: 'center' }}
-                          >
-                            <Edit2 size={14} /> Edit
-                          </button>
-                          <button
-                            type="button"
-                            className="btn-refresh"
-                            onClick={() => toggleArchive(item)}
-                            style={{ flex: 1, justifyContent: 'center' }}
-                            title={item.is_archived ? 'Restore to Active' : 'Move to Archive'}
-                          >
-                            {item.is_archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
-                            {item.is_archived ? 'Restore' : 'Archive'}
-                          </button>
-                        </div>
+                      )}
+                      <div className="inventory-card-status">
+                        <strong>{item.quantity} unit(s)</strong>
+                        <span className={`availability-badge ${item.availability}`}>{LABELS[item.availability] || 'Out of Stock'}</span>
                       </div>
-                    </article>
-                  ))}
-                </div>
-                <Pagination
-                  currentPage={inventoryPage}
-                  totalItems={filteredInventory.length}
-                  pageSize={PAGE_SIZE}
-                  onPageChange={setInventoryPage}
-                />
-              </>
-            ) : (
-              <>
-                <div className="table-scroll">
-                  <table className="inventory-table">
-                    <thead>
-                      <tr>
-                        <th>Product</th>
-                        <th>Colors</th>
-                        <th>Location</th>
-                        <th>Quantity</th>
-                        <th>Status</th>
-                        <th>Threshold</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedInventory.map((item) => (
-                        <tr className={item.is_low_stock ? 'low-stock-row' : ''} key={item.id}>
-                          <td><strong>{item.product_name}</strong><small>{item.sku}</small></td>
-                          <td>
-                            {item.available_colors ? (
-                              <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                                {item.available_colors.split(',').map((c, idx) => (
-                                  <span key={idx} className="tech-tag" style={{ fontSize: '0.72rem', padding: '0.1rem 0.35rem' }}>
-                                    {c.trim()}
-                                  </span>
-                                ))}
-                              </div>
-                            ) : (
-                              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>-</span>
-                            )}
-                          </td>
-                          <td>{item.location_name}</td>
-                          <td className="quantity-cell">{item.quantity}</td>
-                          <td><span className={`availability-badge ${item.availability}`}>{LABELS[item.availability]}</span></td>
-                          <td>
-                            <div className="threshold-control">
-                              <input type="number" min="0" value={thresholds[item.id] ?? 0} onChange={(e) => setThresholds({ ...thresholds, [item.id]: e.target.value })} />
-                              <button onClick={() => saveThreshold(item)}>Save</button>
-                            </div>
-                          </td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '0.35rem' }}>
-                              <button
-                                type="button"
-                                className="btn-refresh primary"
-                                onClick={() => openEditModal(item)}
-                                title="Edit"
-                              >
-                                <Edit2 size={14} /> Edit
-                              </button>
-                              <button
-                                className="btn-refresh"
-                                onClick={() => toggleArchive(item)}
-                                title={item.is_archived ? 'Restore' : 'Archive'}
-                              >
-                                {item.is_archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
-                                {item.is_archived ? 'Restore' : 'Archive'}
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <Pagination
-                  currentPage={inventoryPage}
-                  totalItems={filteredInventory.length}
-                  pageSize={PAGE_SIZE}
-                  onPageChange={setInventoryPage}
-                />
-              </>
-            )
+                      {!item.is_archived && (
+                        <div className="threshold-control">
+                          <input aria-label={`Threshold for ${item.product_name}`} type="number" min="0" value={thresholds[item.id] ?? 0} onChange={(e) => setThresholds({ ...thresholds, [item.id]: e.target.value })} />
+                          <button onClick={() => saveThreshold(item)}>Save threshold</button>
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem' }}>
+                        <button
+                          type="button"
+                          className="btn-refresh primary"
+                          onClick={() => openEditModal(item)}
+                          style={{ flex: 1, justifyContent: 'center' }}
+                        >
+                          <Edit2 size={14} /> Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-refresh"
+                          onClick={() => toggleArchive(item)}
+                          style={{ flex: 1, justifyContent: 'center' }}
+                          title={item.is_archived ? 'Restore to Active' : 'Move to Archive'}
+                        >
+                          {item.is_archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
+                          {item.is_archived ? 'Restore' : 'Archive'}
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              <Pagination
+                currentPage={inventoryPage}
+                totalItems={filteredInventory.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={setInventoryPage}
+              />
+            </>
           )}
         </section>
 
@@ -647,7 +572,7 @@ export function InventoryPage() {
                 </div>
               </div>
 
-              {isAdmin && (
+              {canEditProduct && (
                 <>
                   <label>
                     <span style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>Product Name</span>

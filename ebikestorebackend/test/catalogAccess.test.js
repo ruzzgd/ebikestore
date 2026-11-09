@@ -33,6 +33,18 @@ test('authorized roles can pass product write authorization', () => {
   assert.equal(runProductAuthorization('warehouse_staff'), undefined);
 });
 
+test('authorized roles can pass product image upload authorization', () => {
+  const runUploadAuthorization = (role) => {
+    let receivedError;
+    authorize('admin', 'branch_staff', 'warehouse_staff')({ user: { role } }, {}, (error) => { receivedError = error; });
+    return receivedError;
+  };
+  assert.equal(runUploadAuthorization('admin'), undefined);
+  assert.equal(runUploadAuthorization('branch_staff'), undefined);
+  assert.equal(runUploadAuthorization('warehouse_staff'), undefined);
+  assert.equal(runUploadAuthorization('customer')?.statusCode, 403);
+});
+
 test('customer role cannot pass product write authorization', () => {
   const error = runProductAuthorization('customer');
   assert.equal(error?.statusCode, 403);

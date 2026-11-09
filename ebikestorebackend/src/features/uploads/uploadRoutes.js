@@ -7,11 +7,11 @@ const router = Router();
 // Public Image Stream Endpoint
 router.get('/images/*', uploadController.getImageStream);
 
-// Admin Product Image Upload Endpoint
+// Product Image Upload Endpoint (Admin, Branch Staff, Warehouse Staff)
 router.post(
   '/product-image',
   authenticate,
-  authorize('admin'),
+  authorize('admin', 'branch_staff', 'warehouse_staff'),
   uploadController.multerUploadMiddleware,
   uploadController.uploadProductImage
 );
